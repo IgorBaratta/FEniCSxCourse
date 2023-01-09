@@ -1,22 +1,22 @@
 # +
-# try:
-#   import gmsh
-# except ImportError:
-#   !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/gmsh-install.sh" -O "/tmp/gmsh-install.sh" && bash "/tmp/gmsh-install.sh"
-#   import gmsh
+try:
+  import gmsh
+except ImportError:
+  !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/gmsh-install.sh" -O "/tmp/gmsh-install.sh" && bash "/tmp/gmsh-install.sh"
+  import gmsh
 
-# try:
-#   import dolfinx
-# except ImportError:
-#   !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/fenicsx-install-real.sh" -O "/tmp/fenicsx-install.sh" && bash "/tmp/fenicsx-install.sh"
-#   import dolfinx
+try:
+  import dolfinx
+except ImportError:
+  !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/fenicsx-install-real.sh" -O "/tmp/fenicsx-install.sh" && bash "/tmp/fenicsx-install.sh"
+  import dolfinx
 
-# try: 
-#     import pyvista
-# except ImportError:
-    # !pip install -q piglet pyvirtualdisplay ipyvtklink pyvista panel
-    # !apt-get -qq install xvfb
-    # import pyvista
+try: 
+    import pyvista
+except ImportError:
+    !pip install -q piglet pyvirtualdisplay ipyvtklink pyvista panel
+    !apt-get -qq install xvfb
+    import pyvista
 # -
 
 # # Solving a time-dependent problem
@@ -298,9 +298,3 @@ w_plotter.export_html("./w.html", backend="pythreejs")
 
 
 # ## Homework 2
-
-
-
-# # Commented out IPython magic to ensure Python compatibility.
-# # %%html
-# # <iframe src='./w.html' scrolling="no" width="800px" height="200px"></iframe> <!--  # noqa, -->
