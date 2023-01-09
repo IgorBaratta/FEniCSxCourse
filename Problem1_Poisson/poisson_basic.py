@@ -111,7 +111,6 @@ msh = mesh.create_rectangle(comm=MPI.COMM_WORLD,
 # -
 
 # ## Finite element solution
-
 # We must create now the discrete function space associated to a conforming finite element partition $\mathcal{T}_h$ of $\Omega$,
 # ***the mesh***, in which the solution is sought.
 #
@@ -129,7 +128,7 @@ V = fem.FunctionSpace(msh, ("CG", degree))
 # Above, `CG` refers to Continuous Galerkin, which is just another name for the widely used * Lagrange * spaces in
 # the FEM, so, the following would be equivalent:
 #
-#    V = fem.FunctionSpace(msh, ("Lagrange", degree))
+#     V = fem.FunctionSpace(msh, ("Lagrange", degree))
 #
 # Now, we identify the parts of the boundary on which
 # Dirichlet conditions are given and define the corresponding objects.
