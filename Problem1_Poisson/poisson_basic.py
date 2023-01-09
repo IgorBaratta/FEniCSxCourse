@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Poisson_basic.ipynb
+"""
 
 # Poisson's problem
 ---
@@ -61,6 +61,7 @@ The first step is to import all necessary libraries. In particular, we must impo
 the [`FEniCSx`](https://fenicsproject.org/) library, which can be done now in Colab thanks to the efforts of the
 [`FEM on Colab`](https://fem-on-colab.github.io/).
 Notice that the first time the library is imported, the system may take a while. Following times are expected to be faster.
+
 """
 
 # I don't know why it has to be in this order: first gmsh and then dolfinx
