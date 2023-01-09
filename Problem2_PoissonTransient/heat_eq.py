@@ -1,16 +1,15 @@
 # +
 try:
-  import matplotlib.pyplot as plt
   import gmsh
 except ImportError:
-    !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/gmsh-install.sh" - O "/tmp/gmsh-install.sh" & & bash "/tmp/gmsh-install.sh"
-    import gmsh
+  !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/gmsh-install.sh" -O "/tmp/gmsh-install.sh" && bash "/tmp/gmsh-install.sh"
+  import gmsh
 
 try:
-    import dolfinx
+  import dolfinx
 except ImportError:
-    !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/fenicsx-install-real.sh" - O "/tmp/fenicsx-install.sh" & & bash "/tmp/fenicsx-install.sh"
-    import dolfinx
+  !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/fenicsx-install-real.sh" -O "/tmp/fenicsx-install.sh" && bash "/tmp/fenicsx-install.sh"
+  import dolfinx
 
 try: 
     import pyvista
