@@ -58,12 +58,24 @@
 try:
   import gmsh
 except ImportError:
-  # !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/gmsh-install.sh" -O "/tmp/gmsh-install.sh" && bash "/tmp/gmsh-install.sh"
+  !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/gmsh-install.sh" -O "/tmp/gmsh-install.sh" && bash "/tmp/gmsh-install.sh"
   import gmsh
 
 try:
   import dolfinx
 except ImportError:
-  # !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/fenicsx-install-real.sh" -O "/tmp/fenicsx-install.sh" && bash "/tmp/fenicsx-install.sh"
+  !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/fenicsx-install-real.sh" -O "/tmp/fenicsx-install.sh" && bash "/tmp/fenicsx-install.sh"
   import dolfinx
+#-
+
+# Once the `DOLFINx` package (the main library of the `FEniCSx` project) is installed, we must import some of its modules.
+# 
+# Relevant `DOLFINx` modules:
+# - `dolfinx.mesh`: Classes and functions related to the computational domain
+# - `dolfinx.fem`: Finite element method functionality
+# - `dolfinx.io`: Input/Output (read/write) functionality
+# - `dolfinx.plot`: Convenience functions for exporting plotting data
+
+#+
+from dolfinx import mesh, fem, io, plot
 #-
