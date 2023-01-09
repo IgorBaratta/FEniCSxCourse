@@ -14,11 +14,11 @@ except ImportError:
 try: 
     import pyvista
 except ImportError:
-    !pip install -q piglet pyvirtualdisplay
-    !pip install -q pyvista
+    !pip install -q piglet pyvirtualdisplay ipyvtklink pyvista panel
     !apt-get -qq install xvfb
     import pyvista
 # -
+
 # # Solving a time-dependent problem
 
 # This notebook will show you how to solve a transient problem using DOLFINx, and highlight differences between legacy DOLFIN and DOLFINx.
@@ -45,7 +45,7 @@ from dolfinx import mesh, fem, io, plot, la
 # +
 from mpi4py import MPI
 length, height = 10, 3
-Nx, Ny = 80, 60
+Nx, Ny = 40, 30
 extent = [[0., 0.], [length, height]]
 domain = mesh.create_rectangle(
     MPI.COMM_WORLD, extent, [Nx, Ny], mesh.CellType.quadrilateral)
