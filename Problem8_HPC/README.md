@@ -1,5 +1,9 @@
 Strong and weak scaling tests
 
+## TASK:
+Translate to python:
+https://github.com/FEniCS/performance-test
+
 ## Poisson
 For the Poisson equation, a conjugate gradient (CG) solver with a classical algebraic multigrid (BoomerAMG) 
 preconditioner is recommended. 
