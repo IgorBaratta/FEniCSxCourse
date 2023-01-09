@@ -56,8 +56,8 @@
 
 # +
 try:
-import matplotlib.pyplot as plt
-import gmsh
+  import matplotlib.pyplot as plt
+  import gmsh
 except ImportError:
     !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/gmsh-install.sh" - O "/tmp/gmsh-install.sh" & & bash "/tmp/gmsh-install.sh"
     import gmsh
