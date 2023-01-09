@@ -14,6 +14,7 @@
 #
 # Let us recall the mathematical formulation of the Poisson's problem with
 # Dirichlet and Neumann boundary conditions. In differential form: Find ${u} \in \mathcal{C}^2(\Omega)$ such that
+# 
 # \begin{equation}
 # \left \{
 # \begin{array}{rcll}
@@ -82,7 +83,7 @@ from dolfinx import mesh, fem, io, plot
 # -
 
 # We must also import the [`Unified Form Language`](https://github.com/FEniCS/ufl/) (`UFL`) library
-# which provides us a specific language for writting variational formulations as well as the required
+# which provides us a specific language for writing variational formulations as well as the required
 # mathematical operators
 
 # +
@@ -114,7 +115,7 @@ msh = mesh.create_rectangle(comm=MPI.COMM_WORLD,
 # We must create now the discrete function space associated to a conforming finite element partition $\mathcal{T}_h$ of $\Omega$,
 # ***the mesh***, in which the solution is sought.
 #
-# For this problem, the natural choice is a space of continuous functions, that are elementwise polynomials of degree $k$
+# For this problem, the natural choice is a space of continuous functions, that are element-wise polynomials of degree $k$
 #
 # $$
 # V(\mathcal{T}_h) = V_h = \{v \in H ^ 1(\Omega), ~v | _E \in P_k(E) \, \forall E \in mathcal{T}_h\}
@@ -132,7 +133,7 @@ V = fem.FunctionSpace(msh, ("CG", degree))
 #
 # Now, we identify the parts of the boundary on which
 # Dirichlet conditions are given and define the corresponding objects.
-# In `FEniCSx` we can identify degress of freedom located on the boundary:
+# In `FEniCSx` we can identify degrees of freedom located on the boundary:
 # *   geometrically, or
 # *   topologically
 #
@@ -219,7 +220,6 @@ with io.XDMFFile(MPI.COMM_WORLD, "temperature.xdmf", "w") as xdmf:
 x = SpatialCoordinate(msh)
 
 # to define the exact solution
-
 
 def uex(x): return uleft + ((uright - uleft) /
                             Lx + 0.5*f*Lx)*x[0] - 0.5*f*x[0]**2
@@ -310,3 +310,262 @@ plt.loglog(base=10)
 plt.grid()
 plt.show()
 # -
+
+# ## A more complex geometry: Poisson's multimaterial problem
+
+# We will use a more advance tool, the `gmsh` library to create a square domain with some internal inclusions, such that 
+# \begin{equation}
+#             \mu(\mathbf{x}) = \left\{
+#             \begin{array}{r l l l }
+#             \mu_B & \mbox{if} & \mathbf{x} \in \Omega_{B} = \bigcup_{i=1}^{n_b} {\omega_i}, ~
+#             \omega_i = \{ \mathbf{x} \in \Omega, \parallel \mathbf{x} - \mathbf{x}_c^i \parallel < r_i  \}  \\
+#             ~\\
+#             \mu_A & \mbox{if} & \mathbf{x} \in \Omega_A = \Omega \setminus \Omega_{B}
+#             \end{array}
+#             \right.
+#   \end{equation}
+
+# To that end we must import the library first by doing:
+
+# +
+ninclusions = 3
+Lx = 2.0
+Ly = 2.0
+R1 = 0.25
+R2 = 0.15
+R3 = 0.25
+
+def GenerateMesh():
+
+    gmsh.initialize()
+    proc = MPI.COMM_WORLD.rank
+
+    mass1 = np.pi*R1**2
+    mass2 = np.pi*R2**2
+    mass3 = np.pi*R3**2
+    mass_inc = mass1 + mass2 + mass3
+
+    if proc == 0:
+        # We create one rectangle and the circular inclusion
+        background = gmsh.model.occ.addRectangle(0, 0, 0, Lx, Ly)
+        inclusion1 = gmsh.model.occ.addDisk(0.5, 1.0, 0, R1, R1)
+        inclusion2 = gmsh.model.occ.addDisk(1.0, 1.5, 0, R2, R2)
+        inclusion3 = gmsh.model.occ.addDisk(1.5, 1.0, 0, R3, R3)
+        gmsh.model.occ.synchronize()
+        all_inclusions = [(2, inclusion1)]
+        all_inclusions.extend([(2, inclusion2)])
+        all_inclusions.extend([(2, inclusion3)])
+        whole_domain = gmsh.model.occ.fragment([(2, background)], all_inclusions)
+        gmsh.model.occ.synchronize()
+
+        background_surfaces = []
+        other_surfaces = []
+        for domain in whole_domain[0]:
+            com = gmsh.model.occ.getCenterOfMass(domain[0], domain[1])
+            mass = gmsh.model.occ.getMass(domain[0], domain[1])
+            #print(mass, com)
+            # Identify the square by its mass
+            if np.isclose(mass, (Lx*Ly - mass_inc)):
+                gmsh.model.addPhysicalGroup(domain[0], [domain[1]], 0)
+                background_surfaces.append(domain)
+            elif np.isclose(np.linalg.norm(com), np.sqrt((0.5)**2 + (1.0)**2)):
+                gmsh.model.addPhysicalGroup(domain[0], [domain[1]], 1)
+                other_surfaces.append(domain)
+            elif np.isclose(np.linalg.norm(com), np.sqrt((1.0)**2 + (1.5)**2)) and com[1] > 1.0:
+                gmsh.model.addPhysicalGroup(domain[0], [domain[1]], 2)
+                other_surfaces.append(domain)
+            elif np.isclose(np.linalg.norm(com), np.sqrt((1.5)**2 + (1.0)**2)):
+                gmsh.model.addPhysicalGroup(domain[0], [domain[1]], 3)
+                other_surfaces.append(domain)
+    
+        # Tag the left and right boundaries
+        left = []
+        right = []
+        for line in gmsh.model.getEntities(dim=1):
+            com = gmsh.model.occ.getCenterOfMass(line[0], line[1])
+            if np.isclose(com[0], 0.0):
+                left.append(line[1])
+            if np.isclose(com[0], Lx):
+                right.append(line[1])
+        gmsh.model.addPhysicalGroup(1, left, 3)
+        gmsh.model.addPhysicalGroup(1, right,1)
+
+    gmsh.model.mesh.setSize(gmsh.model.getEntities(0), 0.05)
+    gmsh.model.mesh.generate(2)    
+    
+    msh, subdomains, boundaries = io.gmshio.model_to_mesh(gmsh.model, comm=MPI.COMM_WORLD, rank=0, gdim=2)
+    gmsh.finalize()
+    return msh, subdomains, boundaries
+
+msh, subdomains, boundaries = GenerateMesh()
+
+with io.XDMFFile(MPI.COMM_WORLD, "mymesh.xdmf", "w") as xdmf:
+    xdmf.write_mesh(msh)
+# -
+
+# In order to define the diffusivity as a piecewise constant function we must introduce a `DG` space:
+# $$
+# Q_h = \{v \in L^2(\Omega),~v|_E \in P_0(E) \, \forall E \in \mathcal{T}_h\}
+# $$
+# which is done in `DOLFINx` as
+
+# +
+def SetDifus(msh, subdomains, muA, muB):
+  Q = fem.FunctionSpace(msh, ("DG", 0))
+  muh = fem.Function(Q)
+
+  # Identify cells with different tags
+  cells_background = subdomains.indices[subdomains.values == 0]
+  cells_inc = subdomains.indices[subdomains.values >= 1]
+
+  # Set mu = muA in the background cells
+  muh.x.array[cells_background] = np.full(len(cells_background), muA)
+
+  # Set mu = muB in the inclusion celss
+  muh.x.array[cells_inc] = np.full(len(cells_inc), muB)
+
+  return muh
+
+# Test the function
+muA, muB = 1.0, 10000.0
+muh = SetDifus(msh, subdomains, muA, muB)
+muh.name = "mu"
+with io.XDMFFile(MPI.COMM_WORLD, "mu.xdmf", "w") as xdmf:
+    xdmf.write_mesh(msh)
+    xdmf.write_function(muh)
+
+def SolvePoissonMulti(msh, subdomains, muA, muB):
+  
+  dx = Measure("dx")(subdomain_data=subdomains)
+  ds = Measure("ds")(subdomain_data=boundaries)
+
+  if(False):
+    # Compute the length and area for verification
+    one = fem.Constant(msh, 1.0)
+    for i in [1, 3]:
+      length_form = fem.form( one*ds(i) )
+      lengthside = fem.assemble_scalar(length_form)
+      print(lengthside)
+
+    total = 0.0
+    for i in range(4):
+      area_form = fem.form( one*dx(i) )
+      area = fem.assemble_scalar(area_form)
+      total += area
+      print('Individual area of %d surface= %f' %(i,area))
+    print('Total area=', total)
+
+  degree = 1
+  V = fem.FunctionSpace(msh, ("CG", degree))      
+  dofsL = fem.locate_dofs_geometrical(V, lambda x: np.isclose(x[0], 0))
+  dofsR = fem.locate_dofs_geometrical(V, lambda x: np.isclose(x[0], Lx))
+  bcs = [fem.dirichletbc(ScalarType(uleft), dofsL, V), fem.dirichletbc(ScalarType(uright), dofsR, V)]
+
+  u, v = TrialFunction(V), TestFunction(V)
+
+  muh = SetDifus(msh, subdomains, muA, muB)
+  
+  a = inner(muh*grad(u), grad(v)) * dx
+  source = fem.Constant(msh, 0.0)
+  L = source * v * dx
+  problem = fem.petsc.LinearProblem(a, L, bcs=bcs, petsc_options={"ksp_type": "preonly", "pc_type": "lu", "pc_factor_matsolver_type": "mumps"})
+  uh = problem.solve()
+  print('Solving problem with %d unknowns' %(V.dofmap.index_map.size_global))
+
+  return uh
+
+# Test the function
+uh = SolvePoissonMulti(msh, subdomains, muA, muB)
+uh.name = "Temperature"
+with io.XDMFFile(MPI.COMM_WORLD, "inclusions.xdmf", "w") as xdmf:
+    xdmf.write_mesh(msh)
+    xdmf.write_function(uh)
+# -
+
+
+# # Homework 1
+# 
+# ## Multimaterial problem
+# ### Effective diffusivity
+
+# Taking $f = 0$, compute and the effective thermal diffusivity of the system
+# as function of $\mu_B/\mu_A$
+
+# \begin{equation}
+# \mu_{\mbox{eff}} = \frac{|q|/L_y}{|u_l - u_r|/L_x}  \nonumber
+# \end{equation}
+
+# where the amount of heat entering the system is given by
+
+# \begin{equation}
+#  q = \int_{ \Gamma_{\mbox{left}}}{\mu_A \nabla{u}_h \cdot \check{\mathbf{e}}_1}\,ds
+#  \end{equation}
+
+#  Complete the following code:
+
+#     muA = 1.0
+#     mueff = []
+#     n = FacetNormal(msh)
+#     ds = Measure("ds")(subdomain_data=boundaries)
+#     muBvals = [1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4]
+#     for muB in muBvals:
+#       uh = SolvePoissonMulti(msh, subdomains, muA, muB)
+#       q = ...
+#       mueff.append(...)
+
+# +
+muA = 1.0
+mueff = []
+n = FacetNormal(msh)
+ds = Measure("ds")(subdomain_data=boundaries)
+muBvals = [1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4]
+for muB in muBvals:
+  uh = SolvePoissonMulti(msh, subdomains, muA, muB)
+  q_form = fem.form( inner(grad(uh),n) * ds(3) )
+  q = fem.assemble_scalar(q_form)
+  mueff.append( (q/Ly) / ((uleft - uright)/Lx) )
+
+import matplotlib.pyplot as plt
+plt.figure(figsize= (9,6))
+plt.rcParams['font.size'] = '16'
+plt.axes(facecolor = "lightgray")
+plt.xlabel('$\mu_B/\mu_A$',fontsize=20)
+plt.ylabel('$\mu_{eff}$', fontsize=20)
+l = plt.plot(muBvals, mueff, '-or')
+plt.setp(l, 'markersize', 10)
+plt.setp(l, 'markerfacecolor', 'white')
+plt.semilogx(base=10)
+plt.grid()
+plt.show()
+# -
+
+# ### Average temperature of inclusions
+
+# Let consider $\mu_B \gg \mu_A$, such that the temperature
+# on each circular region is nearly uniform. Implement the computation of 
+# the average temperature on each inclusion, i.e., 
+#  \begin{equation}
+#  \langle T_i \rangle = \frac{1}{|\omega_i|} \, \int_{\omega_i}{u(\mathbf{x})}\,d{x}
+# \end{equation}
+# in which $|\omega_i|$ stands for the the area of region $\omega_i$.
+
+# Complete the following code:
+
+    # dx = Measure("dx")(subdomain_data=subdomains)
+    # one = Constant(msh, 1.0)
+    # Tincav = []
+    # for k in range(ninclusions):
+    #   area = assemble_scalar(fem.form(one * dx(k+1)))
+    #   Tinc = assemble_scalar(...)
+    #   Tincav.append(...)
+
+# +
+dx = Measure("dx")(subdomain_data=subdomains)
+one = fem.Constant(msh, ScalarType(1))
+Tincav = []
+for k in range(ninclusions):
+    area = fem.assemble_scalar(fem.form(one * dx(k+1)))
+    Tinc = fem.assemble_scalar(fem.form(uh  * dx(k+1)))
+    Tincav.append(Tinc/area)
+print(Tincav)
+# - 
