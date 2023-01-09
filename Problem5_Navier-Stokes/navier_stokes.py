@@ -28,11 +28,10 @@
 # Let $H$ be the distance between the plates and  $L$ the length of the channel. There are no body forces. 
 #
 # We may scale the problem first to get rid of seemingly independent physical parameters. The physics of this problem is governed by viscous effects only, in the direction perpendicular to the flow, so a time scale should be based on diffusion across the channel: $t_v=H^2/\nu$. We let $U$, some characteristic inflow velocity, be the velocity scale and $H$ the spatial scale. The pressure scale is taken as the characteristic shear stress, $\mu U/H$, since this is a primary example of shear flow. Inserting $\bar{x}=x/H, \bar{y}=y/H, \bar{z}=z/H, \bar{u}=u/U, \bar{p}=Hp/{\mu U}$, and $\bar{t}=H^2/\nu$ in the equations results in the scaled Navier-Stokes equations (dropping the bars after scaling)
-# ```{math}
-# :label: ns-scaled
+# \begin{equation}
 # \frac{\partial u}{\partial t}+ \mathrm{Re} u \cdot \nabla u &= -\nabla p + \nabla^2 u,\\
 # \nabla \cdot u &=0.
-# ```
+# \end{equation}
 # A detailed derivation for scaling of the Navier-Stokes equation for a large variety of physical situations can be found in {cite}`Langtangen2016scaling` (Chapter 4.2) by Hans Petter Langtangen and Geir K. Pedersen.
 #
 # Here, $\mathrm{Re}=\rho UH/\mu$ is the Reynolds number. Because of the time and pressure scales, which are different from convection dominated fluid flow, the Reynolds number is associated with the convective term and not the viscosity term.
