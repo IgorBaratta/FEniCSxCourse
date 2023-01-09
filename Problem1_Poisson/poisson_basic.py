@@ -54,7 +54,7 @@
 # [`FEM on Colab`](https://fem-on-colab.github.io/).
 # Notice that the first time the library is imported, the system may take a while. Following times are expected to be faster.
 
-#+
+# +
 try:
   import gmsh
 except ImportError:
@@ -66,7 +66,7 @@ try:
 except ImportError:
   !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/fenicsx-install-real.sh" -O "/tmp/fenicsx-install.sh" && bash "/tmp/fenicsx-install.sh"
   import dolfinx
-#-
+# -
 
 # Once the `DOLFINx` package (the main library of the `FEniCSx` project) is installed, we must import some of its modules.
 # 
@@ -76,6 +76,6 @@ except ImportError:
 # - `dolfinx.io`: Input/Output (read/write) functionality
 # - `dolfinx.plot`: Convenience functions for exporting plotting data
 
-#+
+# +
 from dolfinx import mesh, fem, io, plot
-#-
+# -
