@@ -226,6 +226,7 @@ renderer = plotter.add_mesh(grid, show_edges=True, lighting=False,
 plotter.view_xy()
 plotter.camera.zoom(1.3)
 plotter.show()
+# -
 
 # ## Solving a time dependent problem
 #
@@ -265,31 +266,40 @@ while t < T:
 
 plotter.close()
 # -
+
 # """ < img src = "https://github.com/IgorBaratta/FEniCSxCourse/blob/main/Problem2_PoissonTransient/u_time.gif?raw=1" alt = "gif" class = "bg-primary mb-1" width = "800px" >
 
-# # Post-processing without projections
+# ##Post-processing without projections
 
-# In legacy dolfin, the only way of post-processing a `ufl`- expression over the domain, would be by using a projection. This would not be scalable in most cases. Therefore, we have introduced `dolfinx.fem.Expression`, which can be used to evaluate a `ufl`- expression at any given(reference) point in any cell(local to process). Let us consider
-
+# In legacy dolfin, the only way of post-processing a `ufl`- expression over the domain, would be by using a projection. 
+# This would not be scalable in most cases. Therefore, we have introduced `dolfinx.fem.Expression`, which can be used to 
+# evaluate a `ufl`- expression at any given(reference) point in any cell(local to process). Let us consider
+#
 # $$(y, x) \cdot(\nabla u)$$
-# """
 
-# x = SpatialCoordinate(domain)
-# x_grad = inner(as_vector((x[1], x[0])), grad(uh))
+# +
+x = SpatialCoordinate(domain)
+x_grad = inner(as_vector((x[1], x[0])), grad(uh))
 
-# W = fem.FunctionSpace(domain, ("DQ", 1))
+W = fem.FunctionSpace(domain, ("DQ", 1))
 
-# expr = fem.Expression(x_grad, W.element.interpolation_points())
-# w = fem.Function(W)
-# w.interpolate(expr)
+expr = fem.Expression(x_grad, W.element.interpolation_points())
+w = fem.Function(W)
+w.interpolate(expr)
 
-# w_grid = pyvista.UnstructuredGrid(*plot.create_vtk_mesh(W))
-# w_plotter = pyvista.Plotter(window_size=(800, 200))
-# w_grid.point_data["w"] = w.x.array[:].real
-# w_plotter.add_mesh(w_grid, show_edges=True)
-# w_plotter.view_xy()
-# w_plotter.camera.zoom(3)
-# w_plotter.export_html("./w.html", backend="pythreejs")
+w_grid = pyvista.UnstructuredGrid(*plot.create_vtk_mesh(W))
+w_plotter = pyvista.Plotter(window_size=(800, 200))
+w_grid.point_data["w"] = w.x.array[:].real
+w_plotter.add_mesh(w_grid, show_edges=True)
+w_plotter.view_xy()
+w_plotter.camera.zoom(3)
+w_plotter.export_html("./w.html", backend="pythreejs")
+# -
+
+
+# ## Homework 2
+
+
 
 # # Commented out IPython magic to ensure Python compatibility.
 # # %%html
