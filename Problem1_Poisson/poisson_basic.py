@@ -242,7 +242,7 @@ print("    |-H1error=", np.sqrt(errorH1))
 # ## A sanity check: Convergence rates
 #
 # How do we know the numerical solution is actually correct?
-
+#
 # We can compute the rate of convergence of the numerical method and compare to the expected asymptotic value.
 # To that end, we first encapsulate the whole resolution into a single python function that
 # takes as arguments the desired refinement and degree of the
@@ -312,7 +312,6 @@ plt.show()
 # -
 
 # ## A more complex geometry: Poisson's multimaterial problem
-
 # We will use a more advance tool, the `gmsh` library to create a square domain with some internal inclusions, such that 
 # \begin{equation}
 #             \mu(\mathbf{x}) = \left\{
@@ -324,7 +323,7 @@ plt.show()
 #             \end{array}
 #             \right.
 #   \end{equation}
-
+#
 # To that end we must import the library first by doing:
 
 # +
@@ -487,22 +486,19 @@ with io.XDMFFile(MPI.COMM_WORLD, "inclusions.xdmf", "w") as xdmf:
 # 
 # ## Multimaterial problem
 # ### Effective diffusivity
-
 # Taking $f = 0$, compute and the effective thermal diffusivity of the system
 # as function of $\mu_B/\mu_A$
-
 # \begin{equation}
 # \mu_{\mbox{eff}} = \frac{|q|/L_y}{|u_l - u_r|/L_x}  \nonumber
 # \end{equation}
-
+#
 # where the amount of heat entering the system is given by
-
+#
 # \begin{equation}
 #  q = \int_{ \Gamma_{\mbox{left}}}{\mu_A \nabla{u}_h \cdot \check{\mathbf{e}}_1}\,ds
 #  \end{equation}
-
 #  Complete the following code:
-
+#
 #     muA = 1.0
 #     mueff = []
 #     n = FacetNormal(msh)
@@ -540,7 +536,6 @@ plt.show()
 # -
 
 # ### Average temperature of inclusions
-
 # Let consider $\mu_B \gg \mu_A$, such that the temperature
 # on each circular region is nearly uniform. Implement the computation of 
 # the average temperature on each inclusion, i.e., 
@@ -548,16 +543,16 @@ plt.show()
 #  \langle T_i \rangle = \frac{1}{|\omega_i|} \, \int_{\omega_i}{u(\mathbf{x})}\,d{x}
 # \end{equation}
 # in which $|\omega_i|$ stands for the the area of region $\omega_i$.
-
+#
 # Complete the following code:
-
-    # dx = Measure("dx")(subdomain_data=subdomains)
-    # one = Constant(msh, 1.0)
-    # Tincav = []
-    # for k in range(ninclusions):
-    #   area = assemble_scalar(fem.form(one * dx(k+1)))
-    #   Tinc = assemble_scalar(...)
-    #   Tincav.append(...)
+#
+#     dx = Measure("dx")(subdomain_data=subdomains)
+#     one = Constant(msh, 1.0)
+#     Tincav = []
+#     for k in range(ninclusions):
+#       area = assemble_scalar(fem.form(one * dx(k+1)))
+#       Tinc = assemble_scalar(...)
+#       Tincav.append(...)
 
 # +
 dx = Measure("dx")(subdomain_data=subdomains)
