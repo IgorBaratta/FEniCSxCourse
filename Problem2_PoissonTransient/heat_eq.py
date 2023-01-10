@@ -1,28 +1,65 @@
-# # +
-# try:
-#   import gmsh
-# except ImportError:
-#   !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/gmsh-install.sh" -O "/tmp/gmsh-install.sh" && bash "/tmp/gmsh-install.sh"
-#   import gmsh
+# +
+# @title Install dolfinx and dependencies
+try:
+    import gmsh
+except ImportError:
+    !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/gmsh-install.sh" - O "/tmp/gmsh-install.sh" & & bash "/tmp/gmsh-install.sh"
+    import gmsh
 
-# try:
-#   import dolfinx
-# except ImportError:
-#   !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/fenicsx-install-real.sh" -O "/tmp/fenicsx-install.sh" && bash "/tmp/fenicsx-install.sh"
-#   import dolfinx
+try:
+    import dolfinx
+except ImportError:
+    !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/fenicsx-install-real.sh" - O "/tmp/fenicsx-install.sh" & & bash "/tmp/fenicsx-install.sh"
+    import dolfinx
 
-# try:
-#     import pyvista
-# except ImportError:
-#     !pip install -q piglet pyvirtualdisplay ipyvtklink pyvista panel
-#     !apt-get -qq install xvfb
-#     import pyvista
-# # -
+try:
+    import pyvista
+except ImportError:
+    !pip install - q piglet pyvirtualdisplay ipyvtklink pyvista panel
+    !apt-get - qq install xvfb
+    import pyvista
+# -
 
 # # Solving a time-dependent problem
 
-# This notebook will show you how to solve a transient problem using DOLFINx, and highlight differences between legacy DOLFIN and DOLFINx.
-# We start by looking at the structure of DOLFINx:
+#
+# This notebook will show how to solve a transient problem using DOLFINx, namely the diffusion problem,
+# the simplest extension of the Poisson problem studied in the last section.
+#
+# The strong form of our problem reads:
+# $$
+# \begin{align*}
+# \frac{\partial u(\boldsymbol{x}, t)}{\delta t} - \nabla \cdot (\mu  \nabla u(\boldsymbol{x}, t)) &= f(\boldsymbol{x}, t) & & \text{in } \, \Omega, \\
+# u(\boldsymbol{x}, t) &= u_D(\boldsymbol{x}, t) & &\text{on} \,\partial\Omega_\text{D}, \\
+# \mu\frac{\partial u}{\partial n} &= 0 & &\text{on} \, \partial\Omega_\text{N} \\
+# u(\boldsymbol{x}, t=0) &= T(\boldsymbol{x}) & & \text{in } \, \Omega, 
+# \end{align*}
+# $$
+#
+# Where u varies with space and time $u(\boldsymbol{x}, t)$.
+# u_D is a prescribed function at the boundary $\partial\Omega_\text{D}$.
+#
+# To solve time-dependent PDEs using the finite element method, we first discretize the time derivative
+# using a finite difference approximation, yielding a recursive series of stationary problems,
+# and then we convert each stationary problem into a variational problem.
+#
+
+
+# ## Time discretization
+# A finite difference can be used to approximate the time derivative.
+# $$
+# \begin{align*}
+#   \frac{u_{n+1} - u_{n}}{\Delta t} - \nabla \cdot (\mu  \nabla u_{n+1}) = f_{n+1}
+# \end{align*}
+# $$
+# Reordering the last equation equation so that only $u_{n}$ appears in the left-hand
+# side:
+# $$
+# \begin{align*}
+#   u_{n+1} - \Delta t \nabla \, \cdot (\mu  \nabla u_{n+1}) = \Delta t f_{n+1} + u_{n}
+# \end{align*}
+# $$
+
 #
 # Relevant DOLFINx modules:
 # - `dolfinx.mesh`: Classes and functions related to the computational domain
