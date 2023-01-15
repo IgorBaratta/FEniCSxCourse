@@ -67,8 +67,14 @@ except ImportError:
 
 # ## Time-stepping algorithm
 #       Compute T_0 as interpolation of a given function T_i(\boldsymbol{x}) 
-#       Define the bilinear $a(T,v)$ and linear L(v) forms
+#       Define the bilinear a(T,v) and linear L(v) forms
 #       Assemble the matrix A from the bilinear form a
+#       t = 0
+#       while t < t_max:
+#           Assemble the vector b from the linear form L
+#           Apply time dependent boundary conditions
+#           Solve the linear system AT=b
+#           Update current solution T_n = T
 
 
 
