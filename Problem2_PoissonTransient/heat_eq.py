@@ -26,21 +26,22 @@ except ImportError:
 # # Solving a time-dependent problem
 
 #
-# This notebook will show how to solve a transient problem using DOLFINx, namely the diffusion problem,
-# the simplest extension of the Poisson problem studied in the last section.
+# This notebook shows how to solve a transient problem using DOLFINx, namely the diffusion problem,
+# the simplest extension of the Poisson problem.
 #
 # The strong form of our problem reads:
 # $$
 # \begin{align*}
-# \frac{\partial u(\boldsymbol{x}, t)}{\delta t} - \nabla \cdot (\mu  \nabla u(\boldsymbol{x}, t)) &= f(\boldsymbol{x}, t) & & \text{in } \, \Omega, \\
-# u(\boldsymbol{x}, t) &= u_D(\boldsymbol{x}, t) & &\text{on} \,\partial\Omega_\text{D}, \\
-# \mu\frac{\partial u}{\partial n} &= 0 & &\text{on} \, \partial\Omega_\text{N} \\
-# u(\boldsymbol{x}, t=0) &= T(\boldsymbol{x}) & & \text{in } \, \Omega,
+# \frac{\partial T(\boldsymbol{x}, t)}{\partial t} - \nabla \cdot (\mu  \nabla T(\boldsymbol{x}, t)) &= f(\boldsymbol{x}, t) & & \text{in } \, \Omega, \\
+# T(\boldsymbol{x}, t) &= T_D(\boldsymbol{x}, t) & &\text{on} \,\partial\Omega_\text{D}, \\
+# \mu\frac{\partial T}{\partial n} &= 0 & &\text{on} \, \partial\Omega_\text{N} \\
+# T(\boldsymbol{x}, t=0) &= T_i(\boldsymbol{x}) & & \text{in } \, \Omega,
 # \end{align*}
 # $$
 #
-# Where u varies with space and time $u(\boldsymbol{x}, t)$.
-# u_D is a prescribed function at the boundary $\partial\Omega_\text{D}$.
+# Where $T$, the temperature distribution, varies with space and time $T(\boldsymbol{x}, t)$.
+# $T_D$ is a prescribed function at the boundary $\partial\Omega_\text{D}$.
+# And $T_i$ is the initial temperature distribution.
 #
 # To solve time-dependent PDEs using the finite element method, we first discretize the time derivative
 # using a finite difference approximation, yielding a recursive series of stationary problems,
@@ -49,19 +50,32 @@ except ImportError:
 
 
 # ## Time discretization
-# A finite difference can be used to approximate the time derivative.
+# A backward Euler scheme can be used to approximate the time derivative.
 # $$
 # \begin{align*}
-#   \frac{u_{n+1} - u_{n}}{\Delta t} - \nabla \cdot (\mu  \nabla u_{n+1}) = f_{n+1}
+#   \frac{T_{n+1} - T_{n}}{\Delta t} - \nabla \cdot (\mu  \nabla T_{n+1}) = f_{n+1}
 # \end{align*}
 # $$
-# Reordering the last equation equation so that only $u_{n}$ appears in the left-hand
+# Reordering the last equation equation so that only $T_{n+1}$ appears in the left-hand
 # side:
 # $$
 # \begin{align*}
-#   u_{n+1} - \Delta t \nabla \, \cdot (\mu  \nabla u_{n+1}) = \Delta t f_{n+1} + u_{n}
+#   T_{n+1} - \Delta t \nabla \, \cdot (\mu  \nabla T_{n+1}) = \Delta t f_{n+1} + T_{n}
 # \end{align*}
 # $$
+#
+
+# ## Time-stepping algorithm
+#       Compute T_0 as interpolation of a given function T_i(\boldsymbol{x}) 
+#       Define the bilinear $a(T,v)$ and linear L(v) forms
+#       Assemble the matrix A from the bilinear form a
+
+
+
+# ## Variational formulation
+# As usual we find the weak by multiplying our semi-discrete equation by a sufficiently 
+# regular test function $v$ and applying integration by parts
+
 
 #
 # Relevant DOLFINx modules:
