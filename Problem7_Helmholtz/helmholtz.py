@@ -43,6 +43,37 @@ except ImportError:
 # where $k$ is a piecewise constant wavenumber, $\mathrm{j}=\sqrt{-1}$, and $g$ is the boundary source term computed as
 # $$g = \nabla u_\text{inc} \cdot \mathbf{n} - \mathrm{j}ku_\text{inc}$$
 
+#  To derive the weak form for the Helmholtz's equation, we first multiply both sides 
+# of the equation with the complex conjugate of a sufficiently smooth arbitrary test 
+# function $v$, integrate by parts in $\Omega$, the domain of interest, and after 
+# applying the divergence theorem, we find
+# $$
+# \begin{align*}
+#     -\int_\Omega \nabla u \cdot \nabla \bar{v} ~ dx + \int_\Omega k^2 u \,\bar{v} ~ dx + \int_{\partial \Omega} \left(\nabla u \cdot \mathbf{n} \right) \bar{v} ~ ds = \int_\Omega f \, \bar{v} ~ dx.
+# \end{align*}
+# $$
+
+# Assuming that $u$ is a classical solution of our original equation with suitable 
+# boundary conditions, it is also a solution of the weak form for any $v \in C_0^1(\Omega)$, 
+# nevertheless with a reduced smoothness requirement. 
+# If $\Omega \in \mathbb{R}^d, \, d = 1, 2, 3 \,$, then the natural space for the 
+# weak solution and the test functions $v$ is the Sobolev space 
+# $\mathcal{H}^1 (\Omega)$, given by
+# \begin{equation}
+#     \mathcal{H}^1(\Omega) := \{ u: \Omega \rightarrow \mathbb{C}|\,  u \in L^2(\Omega),\,  \partial_{x_i}u\in L^2(\Omega), 1\leq i \leq d  \}.
+# \end{equation}
+
+
+# Assuming that the test function $v$ vanishes on $\Gamma_D$, where 
+# the solution $u$ is known, we arrive at the following variational problem:
+#
+# Find $u \in V$ such that
+# $$
+# \begin{align*}
+#     -\int_\Omega \nabla u \cdot \nabla \bar{v} ~ dx + \int_\Omega k^2 u \,\bar{v}~ dx + \int_{\partial \Omega / \Gamma_D} \left(\nabla u \cdot \mathbf{n} \right) \bar{v} ~ ds = \int_\Omega f \, \bar{v}~ dx \qquad \forall v \in \widehat{V}.
+# \end{align*}
+# $$
+
 # +
 from utils import plot_mesh, plot_function
 from mesh_generation import generate_mesh
@@ -168,7 +199,12 @@ L = ufl.inner(g, v) * ufl.ds
 
 # ## Linear solver
 # Next, we will solve the problem using a direct solver (LU).
-
+# Contrary to the case of elliptic problems where effective multigrid 
+# and domain decomposition methods are readily available 
+# (see for example PETSc documentation), the solution of $Au=b$ is less understood. 
+# The matrix inherits many characteristics from the original equations; 
+# it is symmetric unless non-reciprocal materials are used, and generally, 
+# it is not positive definite nor hermitian. 
 # +
 opt = {"ksp_type": "preonly", "pc_type": "lu"}
 problem = dolfinx.fem.petsc.LinearProblem(a, L, petsc_options=opt)
