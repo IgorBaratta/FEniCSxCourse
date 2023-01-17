@@ -31,7 +31,7 @@ def plot_function(uh, filename):
     pyvista.start_xvfb(0.5)
     plotter = pyvista.Plotter(notebook=False, off_screen=True)
     V = uh.function_space
-    topology, cells, geometry = plot.create_vtk_mesh(V.mesh)
+    topology, cells, geometry = plot.create_vtk_mesh(V)
     grid = pyvista.UnstructuredGrid(topology, cells, geometry)
     grid.point_data["uh"] = numpy.abs(uh.x.array)
     viridis = pyplot.cm.get_cmap("viridis", 25)
