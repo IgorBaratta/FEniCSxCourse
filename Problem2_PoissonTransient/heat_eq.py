@@ -1,21 +1,3 @@
-# +
-try:
-  import dolfinx
-except ImportError:
-  !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/fenicsx-install-real.sh" -O "/tmp/fenicsx-install.sh" && bash "/tmp/fenicsx-install.sh"
-  import dolfinx
-
-try: 
-  import pyvista
-except ImportError:
-  !pip install -q piglet pyvirtualdisplay ipyvtklink pyvista panel
-  !apt-get -qq install xvfb
-  import pyvista
-
-# Utils for plotting the mesh
-!wget https://raw.githubusercontent.com/IgorBaratta/FEniCSxCourse/main/Problem2_PoissonTransient/utils.py
-# -
-
 # # Solving a time-dependent problem
 
 #
