@@ -73,16 +73,27 @@ except ImportError:
 #     -\int_\Omega \nabla u \cdot \nabla \bar{v} ~ dx + \int_\Omega k^2 u \,\bar{v}~ dx + \int_{\partial \Omega / \Gamma_D} \left(\nabla u \cdot \mathbf{n} \right) \bar{v} ~ ds = \int_\Omega f \, \bar{v}~ dx \qquad \forall v \in \widehat{V}.
 # \end{align*}
 # $$
+#
+# Standard Galerkin finite element solutions with low-order piecewise polynomials differ significantly
+# from the best approximation, due to spurious dispersion in the computation, unless the mesh is sufficiently refined.
+# This phenomenon, related to the indefiniteness of the Helmholtz operator is known as the pollution effect.
+#
+
 
 # +
-from utils import plot_mesh, plot_function
-from mesh_generation import generate_mesh
-from dolfinx.io import gmshio
-import IPython
-import numpy as np
 from mpi4py import MPI
 
+# utils for plotting and generating mesh
+from utils import plot_mesh
+from mesh_generation import generate_mesh
+
+# Auxiliary libraries
+import IPython
+import numpy as np
+
+# Import dolfinx and ufl
 import dolfinx
+from dolfinx.io import gmshio
 import ufl
 # -
 
@@ -122,7 +133,7 @@ mesh_order = 2
 # As long as Gmsh has been installed (including its Python API), DOLFINx supports direct input of Gmsh models (generated on one process).
 # DOLFINx will then in turn distribute the mesh over all processes in the communicator passed to `dolfinx.io.gmshio.model_to_mesh`.
 
-# The function `generate_mesh` creates a Gmsh model and saves it into a .msh file.
+# The function `generate_mesh` creates a Gmsh model and saves it into a `.msh` file.
 
 # +
 
