@@ -450,7 +450,6 @@ plt.xlabel('Time (hour)', fontsize=20)
 plt.ylabel('Temperature ($^oC$)', fontsize=20)
 plt.savefig("temperature.png")
 
-# 
 # -
 
 # +
@@ -479,7 +478,7 @@ plt.ylabel('Temperature ($^oC$)', fontsize=20)
 
 
 # **Task 3**: Modify the following thermal solver so that it returns 
-# the hourly temperature inside the room at each time step.
+# the temperature inside the room at each time step.
 # Save the solution at each time-step and visualize with paraview.
 
 # +
