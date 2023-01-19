@@ -4,6 +4,9 @@ import pyvista
 
 
 def plot_mesh(mesh, cell_values=None, filename="file.html"):
+    comm = mesh.comm
+    if comm.size > 1:
+        return
     pyvista.start_xvfb()
     grid = pyvista.UnstructuredGrid(*plot.create_vtk_mesh(mesh))
     plotter = pyvista.Plotter(notebook=True)
