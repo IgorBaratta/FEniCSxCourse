@@ -7,6 +7,8 @@ import numpy
 
 
 def create_mesh(comm, target_dofs, strong_scaling):
+    # Create a mesh such that the target number of dofs
+
     # Get number of processes
     num_processes = comm.size
 
@@ -20,7 +22,7 @@ def create_mesh(comm, target_dofs, strong_scaling):
             Nc[i] = Nc[i]+1
             if numpy.prod(Nc+1) >= N:
                 break
-        
+
     return dolfinx.mesh.create_unit_cube(comm, Nc[0], Nc[1], Nc[2])
 
 
