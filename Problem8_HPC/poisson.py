@@ -20,9 +20,8 @@ def create_mesh(comm, target_dofs, strong_scaling):
             Nc[i] = Nc[i]+1
             if numpy.prod(Nc+1) >= N:
                 break
-
-    mesh = dolfinx.mesh.create_unit_cube(comm, Nc[0], Nc[1], Nc[2])
-    return mesh
+        
+    return dolfinx.mesh.create_unit_cube(comm, Nc[0], Nc[1], Nc[2])
 
 
 def poisson_solver(ndofs: int, petsc_options: dict):
@@ -67,6 +66,7 @@ cg_nopre = {"ksp_type": "cg", "pc_type": "none"}
 multigrid = {"ksp_type": "cg", "pc_type": "hypre",
              "pc_hypre_type": "boomeramg",
              "ksp_rtol": "1e-7"}
+
 
 if __name__ == "__main__":
     dofs = 200000
