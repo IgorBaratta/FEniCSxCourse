@@ -21,7 +21,7 @@ def incoming_wave(x):
 
 
 # Incoming wave
-theta = np.pi/4
+theta = 0
 ui = dolfinx.fem.Function(V)
 ui.interpolate(incoming_wave)
 g = ufl.dot(ufl.grad(ui), n) + 1j * k0 * ui
@@ -41,6 +41,12 @@ problem = dolfinx.fem.petsc.LinearProblem(a, L, petsc_options=opt)
 uh = problem.solve()
 uh.name = "u"
 
-with XDMFFile(MPI.COMM_WORLD, "out.xdmf", "w") as file:
-    file.write_mesh(mesh)
-    file.write_function(u)
+# with XDMFFile(MPI.COMM_WORLD, "out.xdmf", "w") as file:
+#     file.write_mesh(mesh)
+#     file.write_function(uh)
+
+
+error = uinc - uh
+M = ufl.inner(error, error) * ufl.dx
+error_norm = dolfinx.fem.assemble_scalar(dolfinx.fem.form(M))
+print(error_norm)
