@@ -309,11 +309,30 @@ where $\mathbf{u}_D$ is a given function on $\Gamma_D$ and $\boldsymbol{\mathcal
 a given function on $\Gamma_N$.
 
 
-\subsection{Electromagnetism: The Helmholtz's equation}
+\subsection{The Helmholtz's equation}
+The scalar Helmholtz equation essentially models time-harmonic propagation of linear acoustic waves, 
+however it can be a good approximation for time-harmonic electromagnetic waves in some settings. 
 
-...
+It can be derived from the linear wave equation
+\begin{equation}
+       \nabla^2 p = \frac{1}{c^2}\frac{\partial^2 p}{\partial t^2}
+\end{equation}
 
-\section{A variational formulation}
+assuming that the pressure field is a steady state harmonic field:
+\begin{equation}
+       p = \Re\left(u \exp\left(j\omega t\right) \right)
+       \label{eq:time-harmonic}
+\end{equation}
+
+Where $u$ is the complex valued unknown spatial part of the field $\omega$ is the angular 
+frequency of the field, in radians per second. 
+By substituting \ref{eq:time-harmonic} into the wave equation we obtain the Helmholtz equation:
+\nabla^2 \tilde{u} + k^2 \tilde{u}  = 0
+where the constant $k= \omega/c$ is called the wavenumber and is real for real $\omega$. 
+The Helmholtz equation stands therefore for monochromatic waves, or waves of some given frequency $\omega$.
+
+
+section{A variational formulation}
 
 The simplest example we can consider is the Poisson's problem
 \begin{equation}
