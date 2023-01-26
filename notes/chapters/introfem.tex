@@ -1,14 +1,14 @@
 \setchapterpreamble[u]{\margintoc}
 \chapter{INTRODUCTION}
-\labch{intro}
+\labch{lec1}
 
 
 \section{Motivating examples in solid and fluid mechanics}
 
 We begin by recalling some prototypical examples of PDEs
 we aim to solve by the finite element method.
-We introduce thing with a relatively informal language
-a provide some physical interpretation of the different
+We introduce things with a relatively informal language
+and provide some physical interpretation of the different
 quantities and processes involved.
 
 \subsection{Poisson's equation} \index{Poisson's problem}
@@ -60,7 +60,7 @@ hand side becomes the Laplace equation, i.e.,
 \begin{equation}
 \nabla \cdot \left ( \mu(\ex) \nabla{u}(\ex) \right) = \mu \, \nabla^2u(\ex)
 \end{equation}
-Of importance to use is a variant of this problem which includes flux boundary
+Of importance to us is a variant of this problem which includes flux boundary
 conditions over all or in some part of $\partial{\Omega}$ (ommiting the
 $\ex$ dependence for simplificity of notation)
 \begin{equation}
@@ -74,7 +74,8 @@ u & = & g & \mbox{on}~~\Gamma_D \\
 \end{array}
 \right.
 \end{equation}
-where $\partial{\Omega} = \Gamma_D \cup \Gamma_N$ and $\Gamma_D \cap \Gamma_N = \emptyset$.
+where $\partial{\Omega} = \Gamma_D \cup \Gamma_N$ and $\Gamma_D \cap \Gamma_N = \emptyset$
+(see \reffig{domainGDGN}).
 The so called mixed formulation introduces an additional field to represent
 the flux of the quantity of interest
 \begin{equation}
@@ -90,6 +91,11 @@ u & = & g & \mbox{on}~~\Gamma_D \\
 \end{array}
 \right.
 \end{equation}
+\begin{marginfigure}[-5.0cm]
+	\includegraphics[]{Mixed_boundary_conditions}
+	\caption[]{Domain $\Omega$ whose boundary is partitioned into a Dirichlet and a Neumann part.} 
+	\labfig{domainGDGN}
+\end{marginfigure}
 Although both problems are equivalent in the exact setting we are
 focused now, in the discrete setting things may differ a lot,
 very different approaches being needed to deal with each formulation.
@@ -307,15 +313,618 @@ a given function on $\Gamma_N$.
 
 ...
 
-\section{Variational formulations and the Finite element method}
+\section{A variational formulation}
 
-...
+The simplest example we can consider is the Poisson's problem
+\begin{equation}
+\left \{
+\begin{array}{rcll}
+-\nabla \cdot \left ( \mu \nabla{u} \right) & = & f & \mbox{in}~~\Omega \\
+& & & \\
+u & = & g_D & \mbox{on}~~\partial{\Omega}_D \\
+& & & \\
+-\mu\,\nabla{u}\cdot \check{\mathbf{n}} & = & g_N & \mbox{on}~~\partial{\Omega}_N \\
+\end{array}
+\right.
+\end{equation}
+
+
+We will proceed quite informally and letting some details for more advanced courses.
+The idea first is to cast this problem into
+variational form, which amounts to multiply by a sufficiently regular
+\textbf{test} function $v$ that satifies the boundary condition, i.e.,
+\begin{equation}
+v(\mathbf{x}) = 0~~~\forall \mathbf{x} \in \partial{\Omega}_D \labeq{vzeroG}
+\end{equation}
+and integrate over $\Omega$, yielding
+\begin{equation}
+-\int_{\Omega}{\nabla\cdot \left ( \mu(\ex)\,\nabla{u}(\ex)\right ) \, {v}(\ex)}\,dx =
+\int_{\Omega}{f(\ex)\,v(\ex)}\,dx \labeq{poissonbasicfv}
+\end{equation}
+From our Calculus course we know that (ommiting the $\mathbf{x}$ dependence to simplify notation)
+\begin{equation}
+\nabla \cdot \left(  \mu \nabla{u} \, v  \right) = \nabla \cdot \left(  \mu \nabla{u}  \right)\, v
++ \mu \nabla{u} \cdot \nabla{u} \nonumber
+\end{equation}
+We thus have
+\begin{equation}
+\int_{\Omega}{\mu\,\nabla{u}\cdot \nabla{v} }\,dx -\int_{\Omega}{\nabla \cdot \left(  (\mu \nabla{u}) \, v  \right)}\,dx  = 
+\int_{\Omega}{f\,v}\,dx \labeq{poissonbasicfvfin}
+\end{equation}
+For the second term in the left hand side we apply Gauss theorem
+\begin{equation}
+\int_{\Omega}{\nabla \cdot \left(  (\mu \nabla{u}) \, v  \right)}\,dx  = \int_{\partial{\Omega}}{v\,(\mu \nabla{u})\cdot \check{\mathbf{n}}}\,ds
+\end{equation}
+which is identically zero on $\partial{\Omega}_D$ by \refeq{vzeroG}, yielding\sidenote{What we have done is also called integration by parts. Also notice that the boundary 
+of $\Omega$ must have some regularity for the Gauss theorem to be applicable.}
+\begin{equation}
+\int_{\Omega}{\mu\,\nabla{u}\cdot \nabla{v} }\,dx = \int_{\Omega}{f\,v}\,dx - \int_{\partial{\Omega}_N}{g_N \, v}\,ds
+\end{equation}
+Let us agree that this should be valid for any $v$ belonging to some space of
+functions $v: \Omega \rightarrow \mathbb{R}$ (say $V(\Omega)$) that satisfy
+the homogeneous boundary conditions at $\partial{\Omega}_D$, for which the integrals
+in the left and right hand sides at least don't blow up.
+We may formally write what we call from now on the weak\sidenote{The problem is said to be in
+	\textbf{weak} form because in this formulation we require less differentiability from
+	$u$ in contrast to the PDEs in \textbf{strong} form for which we require $u$ to
+	have at least continuous second order derivatives if we pretend the equation
+	to be satisfied pointwise.} form of the problem
+\begin{kaobox}[frametitle=Weak form of Poisson's problem]
+	Find $u \in V(\Omega)$ such that
+	\begin{equation}
+	\left \{
+	\begin{array}{ll}
+	\underbrace{\int_{\Omega}{\mu(\ex)\,\nabla{u}(\ex)\cdot \nabla{v}(\ex)}\,dx}_{a(u,v)} =
+	\underbrace{\int_{\Omega}{f(\ex)\,v(\ex)}\,dx - \int_{\partial{\Omega}_N}{g_N(\ex) \, v(\ex)}\,ds}_{\ell(v)} \labeq{poissonbasicfinal} & \\
+	& \\
+	\forall v \in V(\Omega). &
+	\end{array}
+	\right.
+	\end{equation}
+\end{kaobox}
+What appears in the lhs is a bilinear form $a(\cdot,\cdot)$,
+whereas in the rhs we have a linear form
+$\ell(\cdot)$, two objects we will encounter frequently
+in the course.
+
+\section{Some important function spaces}
+
+The main focus of this course is on the practical 
+aspects of the FEM, however, it is useful to recall
+a few definitions of function spaces that are 
+very often found when solving PDEs by the finite element method.
+
+The first example is the space $C^k(\Omega)$ defined as the set
+of all real-valued functions that are continuous and have
+its partial derivatives up to order $k$ also continuous
+on $\Omega$, particular cases being
+\begin{equation}
+C^0(\Omega) = \{f: \Omega \rightarrow \mathbb{R} : f~\mbox{is continuous}~\forall x \in \Omega\} ~\dot{=}~ C(\Omega)
+\end{equation}
+and
+\begin{equation}
+C^{\infty}(\Omega) = \{f: \Omega \rightarrow \mathbb{R} : f~\mbox{has continuous derivatives of all orders}~\forall x \in \Omega\}
+\end{equation}
+Notice that $C^{\infty}(\Omega) \subset \dots \subset C^{k}(\Omega) \subset \dots \subset C^{0}(\Omega) = C(\Omega)$.
+
+Another example that we will encounter frequently in this course is the space of
+square integrable functions
+\begin{equation}
+L^2(\Omega) = \{f: \Omega \rightarrow \mathbb{R} : \int_{\Omega} f^2\,dx < +\infty\} \labeq{L2sp}
+\end{equation}
+and the space of square integrable functions whose derivatives are also
+square integrable
+\begin{equation}
+H^1(\Omega) = \{f: \Omega \rightarrow \mathbb{R} : f \in L^2(\Omega)~~\mbox{and}~ \int_{\Omega}{(\nabla{f}\cdot\nabla{f})} \,dx < +\infty\} \labeq{H1sp}
+\end{equation}
+which is quite relevant to us \sidenote{In \refeq{H1sp}, since $\nabla{f}: \Omega \rightarrow \mathbb{R}^{d}$
+(is a vector--valued function), the symbol ``$\cdot$'' stands for the inner (or usual ``dot'')
+product of vectors, i.e.,  
+$\nabla{f}(x) \cdot \nabla{f}(x) = \mathlarger{\sum}_{i=1}^{d}{(\nabla{f})_{i}(x)\,(\nabla{f})_{i}(x)} =
+\mathlarger{\sum}_{i=1}^{d}{\frac{\partial{f}}{\partial{x_i}}(x) \, \frac{\partial{f}}{\partial{x_i}}(x)}$.}.
+
+Both are Hilbert spaces, i.e.,
+is a vector space equipped with an inner product, that
+is also a complete metric space with respect to the norm induced by
+the inner product.
+
+The inner products are the $L^2(\Omega)$-inner product
+\begin{equation}
+(v,w)_{L^2(\Omega)} = \int_{\Omega}{v\,w}\,dx  \labeq{L2inner}
+\end{equation}
+and the $H^1(\Omega)$-inner product
+\begin{equation}
+(v,w)_{H^1(\Omega)} = \int_{\Omega}{\left (v\,w + \nabla{v} \cdot \nabla{w}\right )}\,dx \labeq{H1inner}
+\end{equation}
+which induce the norms
+
+\begin{equation}
+\|v\|_{L^2(\Omega)} = \left ( \int_{\Omega}{v^2}\,dx  \right )^{\frac12} \nonumber
+\end{equation}
+and the $H^1(\Omega)$-inner product
+\begin{equation}
+\|v\|_{H^1(\Omega)} = \left ( \int_{\Omega}{\left (v^2 + \nabla{v} \cdot \nabla{v}\right )}\,dx \right )^{\frac12}  \nonumber
+\end{equation}
+
+As a final example consider a subspace of the previous, made up of functions
+that are equal to zero on the boundary $\Gamma = \partial{\Omega}$
+\begin{equation}
+H^1_0(\Omega) = \{f \in H^1(\Omega) : f|_{\Gamma} = 0 \}, \nonumber
+\end{equation}
+This one is also of particular interest to us, since it incorporates
+a \textbf{boundary condition}\sidenote[][1.0cm]{
+We use the notation $ f|_{\Gamma}$ to denote the restriction of a function
+$f$ to the boundary $\Gamma$, i.e., the values of $f(x),~x \in \Gamma$.
+To do this properly, we must introduce the \textbf{trace} operator
+$\gamma: C(\bar{\Omega}) \rightarrow C(\Gamma),~~\gamma(f) = f|_{\Gamma}$.}. 
+We will encounter such spaces frequently throughout. Moreover, 
+we will need to construct finite dimensional subspaces of these spaces 
+for the implementation of the FEM. 
+
+\section{The Galerkin method}
+
+A key ingredient of the finite elememt method, is the
+Galerkin method (also referred to as Ritz-Galerkin) \index{Ritz-Galerkin method},
+which takes as starting point the variational formulation. 
+Let recall the abstract variational problem:~~
+Find $u \in V$ such that
+\begin{equation}
+\left.
+\begin{array}{rll}
+a(u,v) & = & \ell(v)  ~~~\forall \, v \in V \\
+\end{array}
+\right. \nonumber
+\end{equation}
+of which we will see several examples in following lectures.
+The idea behind the Galerkin method is simply to replace
+the space $V$ by a finite dimensional space $V_h \subset V$.
+The space $V_h$ can be spanned by a set of linearly
+independent functions in $V$, $\{\phi_1,\phi_2,\dots,\phi_n\}$
+\sidenote[][0.0cm]{Recall, the subindex $h$ is used
+	to denote finite dimensional or discrete spaces. The $h$
+	in the finite element method is related to the refinement
+	of a partition of $\Omega$ (the mesh), such that $h \rightarrow 0$
+	as $n \rightarrow \infty$.},
+so, we write a discrete variational formulation:
+
+\begin{kaobox}[backgroundcolor={blue!10!white}]
+\textbf{VF}$_h$: Find $u_h \in V_h$ such that
+\begin{equation}
+\left.
+\begin{array}{rll}
+a(u_h,v_h) & = & \ell(v_h)  ~~~\forall \,v_h \in V_h \\
+\end{array}
+\right. \labeq{absVPdisc}
+\end{equation}
+\end{kaobox}
+
+The interesting thing about the Galerkin method is that it provides
+the \textbf{methodology} to compute $u_h$. If we choose a basis
+$\{\psi_1,\psi_2,\dots,\psi_N\}$ of $V_h$ and define $u_h \in V_h$ by
+\begin{equation}
+u_h(\mathbf{x}) = \sum_{j=1}^{n}{\mathsf{U}_j \, \psi_j(\mathbf{x})} \labeq{ansatzuh}
+\end{equation}
+\begin{marginfigure}[0.0cm]
+	\includegraphics[width=0.65\textwidth]{Galerkin}
+	\caption[]{Boris Galerkin (Russia, 1871-1945).}
+	\labfig{galerkinphoto}
+\end{marginfigure}
+replace \refeq{ansatzuh} and take $w_h = \psi_i$ in \refeq{absVPdisc},
+we obtain
+\begin{equation}
+a\left (\sum_{j=1}^{N}{\mathsf{U}_j\psi_j}, \psi_i\right) = \sum_{j=1}^{N}{\underbrace{a(\psi_j,\psi_i)}_{A_{ij}}\mathsf{U}_j} =
+\underbrace{\ell(\psi_i)}_{b_i},~~~i=1,\dots,N
+\end{equation}
+
+\begin{kaobox}[backgroundcolor={blue!10!white}]
+This clearly is a linear system of equations we can solve on a computer:
+	
+\begin{equation}
+\mathbb{A} \, \boldsymbol{\mathsf{U}}
+ = \boldsymbol{\mathsf{b}}
+\end{equation}
+where 
+\begin{itemize}
+\item $\boldsymbol{\mathsf{U}} = [\mathsf{U}_1, \mathsf{U}_2, \dots, \mathsf{U}_N]^{\intercal}$
+is the vector of unknown degrees of freedom (dofs);
+\item $\mathbb{A} \in \mathbb{R}^{N \times N}$ is the system matrix;
+\item $\boldsymbol{\mathsf{b}} \in \mathbb{R}^{N}$ is the rhs vector,
+\end{itemize}
+which for our prototypical example of the heat diffusion problem, are defined by
+\begin{equation}
+A_{ij} = a(\psi_j,\psi_i) = \int_{\Omega}{\left ( \mu \, \nabla{\psi}_j \right )\cdot \nabla{\psi}_i }\,dv,
+\end{equation}
+and
+\begin{equation}
+b_i = \ell(\psi_i) = \int_{\Omega}{f \psi_i }\,dv.
+\end{equation}
+
+The size of the \textbf{Algebraic} problem to be solve clearly
+depends on how big the dimension of the subspace $V_h$ is, and
+for solving such system, \emph{Direct} or \emph{Iterative}
+methods may be used.
+
+\end{kaobox}
+
+About matrix $\mathbb{A}$, in this particular case, we can say:
+\begin{itemize}
+	\item Since $a(v,w) = a(w,v)~\forall v,w \in V$ (i.e., $a(\cdot,\cdot)$ is symmetric),
+	clearly $\mathbb{A}$ is also symmetric;\\
+	\item if $a(w,w) > 0~\forall w \in V$ (then, $(\cdot,\cdot)$ is said to be strongly coercive\sidenote{Strong coercivity is also referred to as V-ellipticity. For
+		the bilinear form at hand, it can be shown this property holds.}), taking
+	any arbitrary nonzero $w_h = \sum_{j=1}^{N}{W_j \, \psi_j}$ and
+	defining $\boldsymbol{\mathsf{W}} = [\mathsf{W}_1, \mathsf{W}_2, \dots, \mathsf{W}_N]^{\intercal}$, we get
+	\begin{equation}
+	a\left (\sum_{j=1}^{N}{\mathsf{W}_j\psi_j},\sum_{i=1}^{N}{\mathsf{W}_i\psi_i} \right) = \sum_{i=1}^{N}\sum_{j=1}^{N}{\mathsf{W}_i \, A_{ij} \, \mathsf{W}_j}
+	= \boldsymbol{\mathsf{W}}^{\intercal} \mathbb{A} \boldsymbol{\mathsf{W}} > 0,~~\boldsymbol{\mathsf{W}} \ne \mathbf{0}
+	\end{equation}
+	thus, $\mathbb{A}$ is positive definite and therefore \textbf{invertible},
+	so, we can safely solve the system and find the unique $\mathbf{U}$
+	that defines $u_h$. \\
+\end{itemize}
+
+\section{Some classical Finite Element spaces}
+
+The question that arises is how to construct a discrete space.
+The typical choice is to construct piecewise polynomial spaces
+associated to a \textbf{conforming partition} (a finite element mesh) 
+of the computational domain,
+i.e.,
+\begin{equation}
+V_h =  \{ w \in C^0(\bar{\Omega}),~\left. w \right |_K \in P_{k}(K)~~\forall K \in \mathcal{T}_h\} \nonumber
+\end{equation}
+where $P_{k}(K)$ is the space of polynomials of degree $k$ on $K$.
+For instance, for $k = 1$ in 2D we have the classical \emph{hat} nodal functions
+on 3-node triangular elements illustrated in \reffig{P1basis}.
+\begin{equation*}
+	P_1(K) = \{p: K \rightarrow \mathbb{R}, ~p = \alpha + \beta x + \gamma \, y \}   
+\end{equation*}
+\begin{marginfigure}[-5.0cm]
+	\includegraphics[width=1.25\textwidth]{base-functions-no-overlap.png}\\
+	\includegraphics[width=1.25\textwidth]{base-functions-overlap.png}   
+	\caption[]{Examples of $P_1$ basis functions associated to the nodes of a 2D triangular mesh.
+		Source: \href{https://www.comsol.com/}{\texttt{https://https://www.comsol.com/}}.}
+	\labfig{P1basis}
+\end{marginfigure}
+
+With these local functions, a global nodal base $\{\psi_1, \dots, \psi_n \}$, 
+can be constructed, such that there is one function for each vertex (node)
+of the mesh. Any piecewise linear function can be written as a
+linear combination of such functions. They are constructed
+such that the delta Kronecker property holds, i.e.,
+$$
+\psi_i(\mathbf{x}_j) = \delta_{ij}
+$$
+These are called \emph{Lagrangian} elements.
+By looking at the basis functions illustrated in \reffig{P1basis}, we notice that they have
+\textbf{compact support}, i.e, they are different than zero only in the cluster of elements
+shared by a given node, thus leading to a sparse matrix $\mathbb{A}$.
+Polynomials of higher order (quadratic, cubic, etc.) can be define similarly, just by introducing addition \textbf{degrees of freedom} (dofs).
+
+An important concept for the construction of finite element spaces
+as the ones just mentioned, is that of a finite element conforming mesh is, which 
+we define here for completeness and ilustrate in \reffig{confvsnonconf}.
+These are the type of meshes we will consider in this course.
+
+\begin{definition}
+	A partition $\mathcal{T}_h$ of a domain $\Omega$ is \textbf{ conforming} if $\bar{K}_i \cap \bar{K}_j$ is either
+	\begin{itemize}
+		\item empty, or,
+		\item a vertex, or
+		\item a complete edge.
+		\item a complete face (in 3D)
+	\end{itemize}
+	otherwise the partition is said to be \textbf{ nonconforming}.
+\end{definition}
+\begin{marginfigure}[-10.0cm]
+	\scalebox{1.3}{\input{images/meshes_f.pdf_t}}
+	\caption[]{Conforming vs. nonconforming partitions of $\Omega$.}
+	\labfig{confvsnonconf}
+\end{marginfigure}
+
+
+An interesting site to take a look at the different finite elements that have been invented 
+so far (or, possibly, most of them) is the library \href{https://defelement.com/}{\texttt{DefElement}},
+a project related to the \texttt{FEniCS} project.
+
+\begin{figure}[ht!!]
+\begin{center}
+\includegraphics{defelement}
+\end{center}
+\end{figure}
+
+We finally state the following theorem which is extremely important to the
+FEM and justify the choice of piecewise polynomial spaces to approximate
+the weak solution of PDEs:
+
+\begin{theorem}
+	Let $\Omega \subset \mathbb{R}^d$ be a bounded Lipschitz domain which can be
+	partitioned into $N_e$ Lipschitz subdomains $K_j$ (i.e., $\overline{\Omega} = \bigcup_{j=1}^{N_e} \bar{K}_j$,	$K_i \cap K_j = \emptyset ~\forall i\ne j$. Let $v$ be a \textbf{ piecewise-polynomial} function on such a partition, then
+	\begin{equation}
+	v \in H^{1}(\Omega) \iff v \in C^0(\overline{\Omega}) \nonumber
+	\end{equation}
+	also
+	\begin{equation}
+	v \in H^{2}(\Omega) \iff v \in C^1(\overline{\Omega}) \nonumber
+	\end{equation}
+\end{theorem}
+
+
 
 \section{The \texttt{FEniCSx} platform}
 
-...
+IGOR: MELHORAR ISTO
 
-\section{Homework 1}
+From the lectures, it will become quite clear that many of the computations
+that are executed when using \texttt{FEniCSx} library, such as,
+\textbf{construction of finite element spaces}, \textbf{assembly of finite element
+	matrizes}, \textbf{numerical integration}, \textbf{imposition of boundary conditions},
+\textbf{matrix solving}, and so on, 
+remains totally hidden to the user. All these calculations being possible,
+thanks to several components that form the \texttt{FEniCSx} platform. 
+These are\sidenote{The
+descriptions of the different components are just a brief summary taken from their corresponding
+repository at \url{https://github.com/FEniCS}.}
+
+\begin{enumerate}
+	
+	\item \href{https://github.com/FEniCS/dolfinx}{\texttt{UFL}}: \texttt{Python} library for writing problems
+	in variational form. It
+	provides the syntaxis to define linear and bilinear forms, finite elements spaces, such that the PDEs can 
+	be written in weak form
+	in a language that is close to the mathematical one;\\
+	
+	\item \href{https://github.com/FEniCS/dolfinx}{\texttt{DOLFINx}}: Dynamic Object Oriented Library for Fini
+	te Element Computation.
+	It provides the computational environment of FEniCSx in C++ and Python and serves, among other things,
+	to interface to parallel linear algebra routines, such as \texttt{Petsc}; \\ 
+	
+	\item \href{https://github.com/FEniCS/ffcx}{\texttt{FFCx}}: FEniCS form compiler.  From a high-level descr
+	iption of the form in the Unified Form Language (UFL), it generates efficient low-level C code that can be
+	used to assemble the corresponding discrete operators. Also, the tutorial about \emph{Just-in-time-compilation} reveals interesting information (see \href{https://jorgensd.github.io/dolfinx-tutorial/chapter4/com
+		piler_parameters.html}{\texttt{JIT}}); \\
+	
+	\item \href{https://github.com/FEniCS/basix}{\texttt{Basix}}: Is a finite element definition and tabulatio
+	n runtime library.
+	Basix allows users e.g. to evaluate finite element basis functions, access geometric and topological information about reference cells,
+	interpolate into a finite element space, among other things;
+	
+\end{enumerate}
+
+\section{1st Tutorial: \texttt{FEniCSx} implementation of Poisson's problem}
+
+As already commented, we will adopt the \texttt{Colab notebook} environment
+to present the different tutorials. For this first tutorial, 
+we will present the \texttt{FEniCSx} implementation
+of the prototypical elliptic second order problem, namely, the Poisson's 
+equation, so, please, click in the link below in order to proceed
+
+ \href{https://github.com/}{\texttt{|> Poisson's tutorial}}
+
+\setchapterpreamble[u]{\margintoc}
+\chapter{TWO CLASSICAL 2nd ORDER PROBLEMS}
+\labch{lec2}
+
+\section{Transient heat conduction}
+
+\subsection{\texttt{FEniCSx} implementation}
+
+\section{The elastostatic problem}
+
+\subsection{\texttt{FEniCSx} implementation}
+
+
+\iffalse
+
+The plan for this lecture is:
+
+\begin{itemize}
+\item Present an implementation of the finite element discretization
+of the Navier-Poisson elastostatic problem.
+\item Create a non-trivial geometry and impose essential boundary conditions
+on a vector field.
+\item Visualize the solution using Paraview.
+\item Perform some postprocessing of the solution.
+\end{itemize}
+
+
+\subsection{Mathematical formulation}
+
+Let us recall the stationary linear elasticity problem with
+Dirichlet and Neumann boundary conditions
+\begin{equation}
+\left \{
+\begin{array}{rcll}
+-\nabla \cdot \boldsymbol{\sigma} (\mathbf{u}) & = & \mathbf{f} & \mbox{in}~\Omega \\
+& & & \\
+\mathbf{u} & = & \mathbf{g} & \mbox{on}~\Gamma_{\mathbf{u}} \\
+& & & \\
+\boldsymbol{\sigma} \cdot \check{\mathbf{n}} & = & \boldsymbol{\mathcal{F}} & \mbox{on}~\Gamma_{\boldsymbol{\mathcal{F}}}
+\end{array}
+\right.
+\end{equation}
+where the stress tensor is
+$$
+\boldsymbol{\sigma} = 2\mu\, \boldsymbol{\varepsilon}({\mathbf{u}})+ \lambda \left ( \nabla\cdot\mathbf{u} \right )\, \mathbf{I}_{d \times d}
+$$
+where $d$ is the spatial dimension, $\mathbf{I}_{d \times d}$ is 
+the identity tensor and the deformation tensor is defined by
+
+$$
+\boldsymbol{\varepsilon}({\mathbf{u}}) = \frac12 (\nabla{\mathbf{u}} + \nabla^{\intercal}{\mathbf{u}})
+$$
+
+Introducing the space of kinematically admissible motions
+
+$$
+V_{\mathbf{g}} = \{\mathbf{v} \in \left [ H^1(\Omega) \right ]^d,~\mathbf{v} = \mathbf{g}~\mbox{on}~\Gamma_D\}
+$$
+
+and applying the principle of virtual work, the variational formulation is obtained: 
+
+\begin{kaobox}[frametitle=Weak form of the Elastostatic problem]
+Find $\mathbf{u} \in V_{\mathbf{g}}$ such that
+
+\begin{eqnarray}
+\underbrace{\int_{\Omega}{\left [2\,\mu \boldsymbol{\varepsilon}(\mathbf{u}) : \boldsymbol{\varepsilon}(\mathbf{v})
+		+ \lambda\, (\nabla \cdot \mathbf{u})\,(\nabla \cdot \mathbf{v}) \right ]\,dx}}_{a(\mathbf{u},\mathbf{v})} =
+\underbrace{\int_{\Omega}{\mathbf{f}\cdot \mathbf{v}}\,dx +
+	\int_{\Gamma_{\boldsymbol{\mathcal{F}}}}{\boldsymbol{\mathcal{F}} \cdot \mathbf{v}}\,ds}_{\ell(\mathbf{v})}\nonumber
+\end{eqnarray}
+$\forall \mathbf{v} \in V_{\mathbf{0}}$.
+\end{kaobox}
+
+The same could be obtained by multiplying the PDE by a sufficiently regular test
+function $\mathbf{v}$ and integrating by parts, very much in the same way we 
+proceeded with Poisson's problem.
+It is very important to realize that functions $\mathbf{v} \in V_{\mathbf{0}}$ 
+satisfy homegeneous boundary conditions on $\Gamma_D$.
+Finally, the discrete version of this problem follows from applying 
+the Galerkin method: 
+
+\begin{kaobox}[backgroundcolor={blue!10!white}]
+Find $\mathbf{u}_h \in V_{h\mathbf{g}} \subset V_{\mathbf{g}}(\Omega)$ such that
+
+\begin{equation}
+a(\mathbf{u}_h,\mathbf{v}_h) = \ell(\mathbf{v}_h) \nonumber
+\end{equation}
+$ \forall \mathbf{v}_h \in V_{h\mathbf{0}}$.
+
+\end{kaobox}
+
+We must create the discrete function space associated to the mesh $\mathcal{T}_h$. As in previous examples, a natural choice is a space of continuous vector functions, whose components 
+are elementwise polynomials of degree $k$ (tipically, $k=1$ or $2$.)
+
+$$
+V(\mathcal{T}_h) = V_h = \{\mathbf{v} \in [H^1(\Omega)]^d,~\mathbf{v}|_E \in [P_k(E)]^d \, \forall E \in \mathcal{T}_h\}
+$$
+
+\subsection{Computational setting}
+
+\begin{marginfigure}[-2.0cm]
+\includegraphics[width=0.4\textwidth]{corpo_prova2d.png}
+\caption[]{Computational domain to solve the elastostatic problem in 2D.
+	The total height is $2.4$ units, the width and height of the bottom and top parts is $0.4$
+	and the radius of the central arc (the neck) is $1.2$.}
+\labfig{corpo2d}
+\end{marginfigure}
+In this tutorial we consider a more complex geometry which is ilustrated in 
+\reffig{corpo2d}. This geometry is built using the \texttt{gmsh} library.
+Notice how the mesh is refined locally in the thinner part of the domain.
+On this geometry we will consider the following boundary conditions.
+\begin{eqnarray}
+\mathbf{u} & = & (0,0)^{\intercal} ~~\mbox{in}~~\Gamma_{\mbox{bottom}} \nonumber \\
+& & \nonumber \\
+u_x & = & 0~~\mbox{in}~~\Gamma_{\mbox{left}}\nonumber
+\end{eqnarray}
+These conditions ensure that \textbf{rigid body} motions, namely, \textbf{rotations and translations} are totally restricted. Usually, setting the boundary conditions is the step that takes more work. We must identify those degrees of freedom (the $\mathsf{U}_i$s) that correspond to points
+located on the boundary and set accordingly by modifying the linear system of equations. 
+
+As for the natural bounday conditions, on the top wall we will apply 
+the following surface force distribution
+
+$$
+\boldsymbol{\mathcal{F}} = (0,-0.1)^{\intercal}
+$$
+so as to impose a compressive load. The rest of the boundary is traction free and the body forces are considered to be negligible, i.e.,
+
+$$
+\boldsymbol{\mathcal{F}} = (0,0)^{\intercal},~~~\mathbf{f} = (0,0)^{\intercal}
+$$
+
+\section{Homework 2}
+
+\subsection{Von Mises stresses}
+
+Given the deviatoric stresses 
+$$
+\boldsymbol{s} = \boldsymbol{\sigma}(\mathbf{u}_h) - \frac{\mbox{tr}(\boldsymbol{\sigma}(\mathbf{u}_h))}{d}\boldsymbol{I}_{d\times d}
+$$
+
+Compute the \textbf{scalar} quantity known as the Von Mises stresses
+defined as the second invariant of the deviatoric stresses:
+
+$$
+\sigma_V = \sqrt{\frac32\boldsymbol{s}:\boldsymbol{s}}
+$$
+
+Implement in \texttt{dolfinx}. For visualization of results, interpolate $\sigma_V$ onto a space of elementwise constant functions (a \texttt{DG} space of order 0) as we have done before
+
+$$
+Q_h = \{v \in L^2(\Omega),~v|_E \in P_0(E) \, \forall E \in \mathcal{T}_h\}
+$$
+
+Follow the next guidelines:
+\vspace{-0.5cm}
+\begin{center}
+	\begin{minipage}{1.05\textwidth}
+		\lstinputlisting[language=Python]{vonmises.py}
+	\end{minipage}
+\end{center}
+
+
+Notice the use of the \texttt{interpolate} method to assign to each 
+element the corresponding value of $\sigma_V$.
+
+\subsection{Optional: 3D problem}
+\begin{marginfigure}[-3.0cm]
+	\includegraphics[width=1.2\textwidth]{corpo_prova3d.png}
+	\caption[]{Computational domain to solve the elastostatic problem in 3D.}
+	\labfig{corpo3d}
+\end{marginfigure}
+Consider the 3D version of the previous problem which is shown
+in \reffig{corpo3d}
+This mesh can be created with the function \texttt{GenerateMesh3D()} available
+at the end of the \texttt{notebook}. Implement the necessary changes to solve
+the problem with the following boundary conditions
+\begin{eqnarray}
+\mathbf{u} & = & (0,0,0)^{\intercal} ~~\mbox{in}~~\Gamma_{\mbox{bottom}} \nonumber \\
+& & \nonumber \\
+\mathbf{u} & = & (0,0,-0.1)^{\intercal} ~~\mbox{in}~~\Gamma_{\mbox{top}} \nonumber
+\end{eqnarray}
+whereas the rest of the boundary remains traction free 
+$$
+\boldsymbol{\mathcal{F}} = (0,0)^{\intercal}
+$$
+\fi
+
+%-----------------------------------------------
+\setchapterpreamble[u]{\margintoc}
+\chapter{MIXED PROBLEMS}
+\labch{lec3}
+
+\section{Thermoelastic problem}
+
+\subsection{\texttt{FEniCSx} implementation}
+
+\section{The incompressible Navier-Stokes equations}
+
+\subsection{\texttt{FEniCSx} implementation}
+
+%-----------------------------------------------
+\setchapterpreamble[u]{\margintoc}
+\chapter{ADVANCED TOPICS}
+\labch{lec4}
+
+\section{Darcy's flow}
+
+\subsection{\texttt{FEniCSx} implementation}
+
+\section{The Helmholtz's equation}
+
+\subsection{\texttt{FEniCSx} implementation}
+
+%-----------------------------------------------
+\setchapterpreamble[u]{\margintoc}
+\chapter{HIGH PERFORMANCE COMPUTING WITH \texttt{FEniCSx}}
+\labch{lec5}
+
+
+\section{Parallel computing in \texttt{FEniCSx}}
+
+\section{Weak and strong scaling}
+
+\subsection{\texttt{FEniCSx} implementation}
 
 
 \iffalse

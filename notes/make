@@ -1,0 +1,7 @@
+pdflatex fenicsx23_notes_RFA_IB # Compile template
+makeindex fenicsx23_notes_RFA_IB.nlo -s nomencl.ist -o fenicsx23_notes_RFA_IB.nls # Compile nomenclature
+makeindex fenicsx23_notes_RFA_IB # Compile index
+biber fenicsx23_notes_RFA_IB # Compile bibliography
+pdflatex fenicsx23_notes_RFA_IB # Compile template
+makeglossaries fenicsx23_notes_RFA_IB # Compile glossary
+pdflatex fenicsx23_notes_RFA_IB # Compile template
