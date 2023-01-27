@@ -8,8 +8,8 @@ This repository contains the python scripts to be used in the FEniCSx course to 
 To clone the repository:
 
 ```
-git clone https://gitlab.com/rfausas/fenicsxcourse.git
-cd fenicsxcourse/
+git clone https://github.com/IgorBaratta/FEniCSxCourse.git
+cd FEniCSxCourse/
 ```
 
 
