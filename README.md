@@ -3,7 +3,7 @@
 
 ## Description
 
-This repository contains the python scripts to be used in the FEniCSx course to be held at ICMC-USP, São Carlos, SP 30/01-03/02/2023.
+This repository contains the python scripts and jupyter notebooks to be used in the FEniCSx course to be held at ICMC-USP, São Carlos, SP 30/01-03/02/2023.
 
 To clone the repository:
 
