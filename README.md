@@ -15,5 +15,15 @@ cd fenicsxcourse/
 
 ## Lectures
 
-- [ ] [Lecture 1: Introduction - The Poisson's problem](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) 
-- [ ] [Lecture 2: The linear elasticity problem](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line)
+- [ ] Lecture 1: Introduction
+	* [Poisson's problem](Problem1_Poisson/README.md) 
+- [ ] Lecture 2: Classical 2nd order problems
+	* [Transient heat conduction](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line)
+	* [Elasticity](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line)
+- [ ] Lecture 3: 
+	* [Mixed problems](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file)
+- [ ] Lecture 4: Advanced topics
+	* [Darcy's flow](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file)
+	* [Helmholtz's equation](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file)
+- [ ] Lecture 5: High Performance Computing
+	* [3D Poisson's problem - Preconditioners](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line)
