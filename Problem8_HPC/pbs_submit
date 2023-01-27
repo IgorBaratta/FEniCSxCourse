@@ -1,0 +1,14 @@
+#PBS -N JobPar
+#PBS -l select=2:ncpus=40:nodetype=n40
+
+#PBS -l walltime=1:00:00
+#PBS -m ae
+#PBS -M email@email.com
+
+module load gcc
+module load python/3.6.8
+
+source /home/ibaratta/spack/share/spack/setup-env.sh
+spack env activate dolfinx-mpich
+
+mpirun -np 40 --hostfile $PBS_NODEFILE  python3 ~/FEniCSxCourse/Problem8_HPC/poisson.py
