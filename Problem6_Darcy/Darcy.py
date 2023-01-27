@@ -8,6 +8,7 @@
 #       jupytext_version: 1.14.1
 #   kernelspec:
 #     display_name: Python 3
+#     language: python
 #     name: python3
 # ---
 
@@ -65,20 +66,19 @@
 # $\forall (\mathbf{v},q) \in V_0 \times Q$.
 
 # + id="F8zm2mocgiW4"
-try:
-  import gmsh
-except ImportError:
-  # !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/gmsh-install.sh" -O "/tmp/gmsh-install.sh" && bash "/tmp/gmsh-install.sh"
-  import gmsh
+# try:
+#     import gmsh
+# except ImportError:
+#     # !wget "https://fem-on-colab.github.io/releases/gmsh-install.sh" -O "/tmp/gmsh-install.sh" && bash "/tmp/gmsh-install.sh"
+#     import gmsh
 
-try:
-  import dolfinx
-except ImportError:
-  # !wget "https://github.com/fem-on-colab/fem-on-colab.github.io/raw/7f220b6/releases/fenicsx-install-real.sh" -O "/tmp/fenicsx-install.sh" && bash "/tmp/fenicsx-install.sh"
-  import dolfinx
+# try:
+#     import dolfinx
+# except ImportError:
+#     # !wget "https://fem-on-colab.github.io/releases/fenicsx-install-real.sh" -O "/tmp/fenicsx-install.sh" && bash "/tmp/fenicsx-install.sh"
+#     import dolfinx
 
-# !wget "https://gitlab.com/rfausas/fenicsxcourse/-/blob/main/Problem6_Darcy/perm_field.dat"
-
+# # !wget "https://raw.githubusercontent.com/IgorBaratta/FEniCSxCourse/main/Problem6_Darcy/perm_field.dat"
 
 # + id="e6_JfgvuhIjl"
 from dolfinx import mesh, fem, io, plot
@@ -211,7 +211,7 @@ for i in range(Nx):
 # + [markdown] id="RSjmvJPhy_xK"
 # Notice how the field is highly heterogeneous
 
-# + colab={"base_uri": "https://localhost:8080/", "height": 200} id="xL1OPt_Y14_9" executionInfo={"status": "ok", "timestamp": 1674237751735, "user_tz": 180, "elapsed": 1119, "user": {"displayName": "Roberto Federico Ausas", "userId": "01910242568345374894"}} outputId="ee094ecf-c9c2-4a3e-9c01-fa6f984396f5"
+# + colab={"base_uri": "https://localhost:8080/", "height": 200} executionInfo={"elapsed": 1119, "status": "ok", "timestamp": 1674237751735, "user": {"displayName": "Roberto Federico Ausas", "userId": "01910242568345374894"}, "user_tz": 180} id="xL1OPt_Y14_9" outputId="ee094ecf-c9c2-4a3e-9c01-fa6f984396f5"
 import matplotlib.pyplot as plt
 plt.figure(figsize=(33/3, 3))
 plt.imshow(np.log(kx_array[:,:].T), origin="leftbottom", cmap='gist_rainbow')
@@ -228,7 +228,7 @@ plt.show()
 #
 # and finally interpolate the data to the function representing the permeability ${\kappa}$, which can be efficiently done in the following way:
 
-# + id="8myvziiczMSn" colab={"base_uri": "https://localhost:8080/", "height": 17} executionInfo={"status": "ok", "timestamp": 1674237777339, "user_tz": 180, "elapsed": 326, "user": {"displayName": "Roberto Federico Ausas", "userId": "01910242568345374894"}} outputId="fdbfd930-1873-43c0-9945-4d1b4cc61702"
+# + colab={"base_uri": "https://localhost:8080/", "height": 17} executionInfo={"elapsed": 326, "status": "ok", "timestamp": 1674237777339, "user": {"displayName": "Roberto Federico Ausas", "userId": "01910242568345374894"}, "user_tz": 180} id="8myvziiczMSn" outputId="fdbfd930-1873-43c0-9945-4d1b4cc61702"
 def EvalKappa(x):
   icellf = 0.99999999*x[0]/Dx
   jcellf = 0.99999999*x[1]/Dy
@@ -395,7 +395,7 @@ bcs = [fem.dirichletbc(w_bc, bc_dofs, W.sub(0))]
 # for large systems, generally in the 3D case, can be quite challenging,
 # requiring efficient **preconditioners**. In our 2D case we can solve using direct methods:
 
-# + colab={"base_uri": "https://localhost:8080/"} id="1jueYKwWFBWN" executionInfo={"status": "ok", "timestamp": 1674237943742, "user_tz": 180, "elapsed": 2779, "user": {"displayName": "Roberto Federico Ausas", "userId": "01910242568345374894"}} outputId="d4b7022c-2fac-4f99-964f-bda477863691"
+# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 2779, "status": "ok", "timestamp": 1674237943742, "user": {"displayName": "Roberto Federico Ausas", "userId": "01910242568345374894"}, "user_tz": 180} id="1jueYKwWFBWN" outputId="d4b7022c-2fac-4f99-964f-bda477863691"
 wh = fem.Function(W)
 petsc_opts={"ksp_type": "preonly", "pc_type": "lu", "pc_factor_mat_solver_type": "superlu", "ksp_monitor": None}
 problem = fem.petsc.LinearProblem(B, L, bcs=bcs, u=wh, petsc_options=petsc_opts)
@@ -413,7 +413,7 @@ print("\nInflow =%f\nOutflow=%f\nTopflow=%f\nBotflow=%f" %(inflow, outflow, topf
 # Since in this case the source term $f = 0$, the inflow must be equal to the outflow, a fact that the discrete formulation is able to capture.
 # To visualize the velocity field in `Paraview`, we must first interpolate onto a space of vector functions, e.g., a `DG` space:
 
-# + id="v0nahLzIx42k" colab={"base_uri": "https://localhost:8080/", "height": 17} executionInfo={"status": "ok", "timestamp": 1674238058895, "user_tz": 180, "elapsed": 773, "user": {"displayName": "Roberto Federico Ausas", "userId": "01910242568345374894"}} outputId="8b18e2a7-1c35-4ef7-a2a3-79af8323493e"
+# + colab={"base_uri": "https://localhost:8080/", "height": 17} executionInfo={"elapsed": 773, "status": "ok", "timestamp": 1674238058895, "user": {"displayName": "Roberto Federico Ausas", "userId": "01910242568345374894"}, "user_tz": 180} id="v0nahLzIx42k" outputId="8b18e2a7-1c35-4ef7-a2a3-79af8323493e"
 if(cell_type == mesh.CellType.triangle):
     BDM_out = fem.VectorFunctionSpace(msh, ("DG", 1))
 else:
@@ -445,7 +445,7 @@ files.download('pres.h5')
 # Compute the mass balance and observe how it fails as compared to
 # the mixed formulation.
 
-# + id="5d_prJzX1q8i" colab={"base_uri": "https://localhost:8080/"} executionInfo={"status": "ok", "timestamp": 1672326082999, "user_tz": 180, "elapsed": 2778, "user": {"displayName": "Roberto Federico Ausas", "userId": "01910242568345374894"}} outputId="2721825e-5e2b-4fb0-c6ab-745c91d5f639"
+# + 
 def SolvePoissonPrimal(msh):
   
   V = fem.FunctionSpace(msh, ("CG", 1))
