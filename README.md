@@ -8,7 +8,7 @@ This repository contains the python scripts and jupyter notebooks to be used in 
 To clone the repository:
 
 ```
-git clone https://github.com/IgorBaratta/FEniCSxCourse.git
+git clone https://github.com/IgorBaratta/FEniCSxCourse.git -b ICMC23
 cd FEniCSxCourse/
 ```
 
