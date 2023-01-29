@@ -14,7 +14,7 @@ quantities and processes involved.
 \subsection{Poisson's equation} \index{Poisson's problem}
 
 The simplest second order PDE we will consider in this course is
-Poisson's equations that models several physical phenomena, such as,
+Poisson's equation that models several physical phenomena, such as,
 heat conduction, mass transport by diffusion or even
 fully developed flows in ducts as we will see later on in this
 chapter. The problem reads: Given a region $\Omega \subset \mathbb{R}^d,~~d=1,2$ or $3$
@@ -310,27 +310,33 @@ a given function on $\Gamma_N$.
 
 
 \subsection{The Helmholtz's equation}
-The scalar Helmholtz equation essentially models time-harmonic propagation of linear acoustic waves, 
+The scalar Helmholtz equation models time-harmonic propagation of linear acoustic waves, 
 however it can be a good approximation for time-harmonic electromagnetic waves in some settings. 
 
 It can be derived from the linear wave equation
 \begin{equation}
        \nabla^2 p = \frac{1}{c^2}\frac{\partial^2 p}{\partial t^2}
 \end{equation}
-
 assuming that the pressure field is a steady state harmonic field:
 \begin{equation}
-       p = \Re\left(u \exp\left(j\omega t\right) \right)
+       p = \Re\left(\tilde{p} \exp\left(j\omega t\right) \right)
        \label{eq:time-harmonic}
 \end{equation}
+where $\tilde{p}$ is a complex valued field, $\omega$, is the angular  frequency of the field in radians per second. 
 
-Where $u$ is the complex valued unknown spatial part of the field $\omega$ is the angular 
-frequency of the field, in radians per second. 
-By substituting \ref{eq:time-harmonic} into the wave equation we obtain the Helmholtz equation:
-\nabla^2 \tilde{u} + k^2 \tilde{u}  = 0
-where the constant $k= \omega/c$ is called the wavenumber and is real for real $\omega$. 
-The Helmholtz equation stands therefore for monochromatic waves, or waves of some given frequency $\omega$.
+By substituting Eq. (\href{eq:time-harmonic}) into the wave equation we obtain the Helmholtz equation:
+\begin{equation}
+ \nabla^2 \tilde{p} + k^2 \tilde{p}  = 0    
+\end{equation}
+where the constant $k= \omega/c$ is called the wavenumber. 
 
+The Helmholtz equation stands therefore for monochromatic waves, or waves of a given frequency $\omega$.
+Because the Helmholtz equation is time-independent, it could be solved more efficiently compared to the time-dependent
+wave equations used for modeling acoustics in the time domain. However finding a good solver and preconditioner for this
+type of equation is still an open problem.
+
+The Helmholtz equation is deceivingly similar to the reaction-diffusion (eg, $-(\nabla^2 {u} - \eta^2 {u}) = 0$), for sufficiently 
+large $k$ the underlying operator is not positive definite.
 
 section{A variational formulation}
 
