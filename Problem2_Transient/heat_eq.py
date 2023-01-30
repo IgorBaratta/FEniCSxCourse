@@ -4,75 +4,81 @@
 # This notebook shows how to solve a transient problem using DOLFINx, 
 # namely the diffusion problem, the simplest extension of the Poisson problem.
 #
-# The strong form of our problem reads:
+# The transient or unsteady version of the previous problems includes an additional term involving the rate 
+# of change of the physical quantity of interest. 
+# For the heat conduction problem the equation reads
 # $$
 # \begin{align*}
-# \frac{\partial T(\boldsymbol{x}, t)}{\partial t} - \nabla \cdot (\nabla T(\boldsymbol{x}, t)) 
-# &= f(\boldsymbol{x}, t) & & \text{in } \, \Omega, \\
-# T(\boldsymbol{x}, t) &= T_D(\boldsymbol{x}, t) & &\text{on} \,\partial\Omega_\text{D}, \\
-# T(\boldsymbol{x}, t=0) &= T_i(\boldsymbol{x}) & & \text{in } \, \Omega,
+# a(\mathbf{x},t)\,\dfrac{\partial{u}(\boldsymbol{x},t)}{\partial{t}} -\nabla \cdot \left ( \mu(\boldsymbol{x},t) \nabla{u}(\boldsymbol{x},t) \right) & = f(\boldsymbol{x},t) & \boldsymbol{x} \in \Omega,~~t \in [0,T] \\
+# & & & \\
+# u(\boldsymbol{x},t) & =  g(\boldsymbol{x},t) & \boldsymbol{x} \in \partial{\Omega},~~t \in [0,T] \\
+# & & & \\
+# u(\boldsymbol{x},0) & =  u_0(\boldsymbol{x}) & \boldsymbol{x} \in \partial{\Omega} &
 # \end{align*}
 # $$
 #
-# Where $T$, the temperature distribution, varies with space and time $T(\boldsymbol{x}, t)$.
-# $T_D$ is a prescribed function at the boundary $\partial\Omega_\text{D}$.
-# And $T_i$ is the initial temperature distribution.
+# Where $u$, the temperature distribution, varies with space and time $u(\boldsymbol{x}, t)$. \
+# $u_D$ is a prescribed function at the boundary $\partial\Omega_\text{D}$. \
+# And $u_0$ is the initial temperature distribution.
 #
-# To solve time-dependent PDEs using the finite element method, we first discretize the time derivative
-# using a finite difference approximation, yielding a recursive series of stationary problems,
-# and then we convert each stationary problem into a variational problem.
+# In general, to solve time-dependent PDEs using the finite element method, we first discretize 
+# the time derivative using a finite difference scheme which yelds a recursive series of stationary 
+# problems. We can then convert each stationary problem into a variational problem.
 
 # ## Time discretization
 # A backward Euler scheme can be used to approximate the time derivative.
 # $$
 # \begin{align*}
-#   \frac{T_{n} - T_{n-1}}{\Delta t} - \nabla \cdot (\nabla T_{n}) = f_{n}
+#   a \cdot \frac{u_{n} - u_{n-1}}{\Delta t} - \nabla \cdot (\mu \nabla u_{n}) = f_{n}
 # \end{align*}
 # $$
 # We may reorder the semi-discrete equation so that the left-hand side contains the terms with 
-# the unknown $T_{n}$ and the right-hand side contains computed terms only. 
+# the unknown $u_{n}$ and the right-hand side contains computed terms only. 
 # $$
 # \begin{align*}
-#   T_{n} - \Delta t \nabla \, \cdot (\nabla T_{n}) = \Delta t f_{n} + T_{n-1}
+#   a \, u_{n} - \Delta t \nabla \, \cdot (\mu\nabla u_{n}) = \Delta t f_{n} + a \, u_{n-1}
 # \end{align*}
 # $$
 #
 
 # ## Variational formulation
 # As usual we find the weak by multiplying our semi-discrete equation by a sufficiently
-# regular test function $v$ and applying integration by parts. At time-step $n$ the weak
-# reads: 
-# 
-# Find $u \in V(\Omega)$ such that
+# regular test function $v$ and applying integration by parts. \
+# At time-step $n$ the weak the variational problem reads: 
+#
+# Find $u_n \in V(\Omega)$ such that
 # $$
 # \begin{align*}
-#   \int_{\Omega} T_n v \,dx + \Delta t 
-#   \int_{\Omega}{ \alpha \nabla T_n \cdot \nabla v}\,dx 
+#   \int_{\Omega} a\, u_n v \,dx + \Delta t 
+#   \int_{\Omega}{ \mu \nabla u_n \cdot \nabla v}\,dx 
 #   = \Delta t \int_{\Omega} f \cdot v \, dx + \int_{\Omega} 
-#   T_{n-1} \cdot v \, dx
+#   a\,  u_{n-1} \cdot v \, dx
 # \end{align*}
 # $$
 
-# For this problem, the natural choice is a space of scalar-valued continuous functions, 
+# Again, for this problem, the natural choice is a space of scalar-valued continuous functions, 
 # that are element-wise polynomials of degree $k$
 # $$
 # V(\mathcal{T}_h) = V_h = \{v \in H ^ 1(\Omega), 
 # ~v | _E \in P_k(E) \, \forall E \in \mathcal{T}_h\}
 # $$
+# Which in DOLFINx can be declared as:
+#
+#     V = fem.FunctionSpace(mesh, ("Lagrange", k))
 
 # ## Test problem - Manufactured Solution
-# We construct a test problem for which we can easily check the answer. 
-# We create a test problem with a linear variation in time because we know 
-# our first-order time-stepping scheme is exact for linear functions.
+# We construct first a test problem for which we can easily check the answer. \
+# In this tutorial we create a test problem with a linear variation in time because we 
+# know our first-order time-stepping scheme is exact for linear functions.
 #
 # $$
 # \begin{align*}
-#   T(\boldsymbol{x}, t) = c_0 x_0^2 + c_1 x_0 + c_3t
+#   u(\boldsymbol{x}, t) = c_0 x_0^2 + c_1 x_0 + c_3t
 # \end{align*}
 # $$
 # which produces a function whose computed values at the nodes are exact regardless 
-# of element size and $\delta t$, as long as the mesh is partitioned uniformly.
-# and then we insert the exact solution into the strong form of our pde.
+# of element size and $\Delta t$, as long as the mesh is partitioned uniformly.
+# Then we insert the exact solution into the strong form of our pde.
 # With simple manipulations we realize that the source should be:
 # $$
 # \begin{align*}
@@ -105,7 +111,7 @@ from dolfinx.mesh import (CellType, create_unit_square, locate_entities, exterio
 from ufl import TestFunction, TrialFunction, dx, inner, grad
 
 # Convenience functions for plotting on jupyter notebooks
-from utils import plot_mesh, create_gif
+from utils import plot_mesh
 import IPython
 # -
 
@@ -115,25 +121,25 @@ import IPython
 # In this module, we have the tools to build rectangles of triangular or quadrilateral elements and boxes
 # of tetrahedral or hexahedral elements. We start by creating a unit square:
 
-# +
 comm = MPI.COMM_WORLD
 mesh = create_unit_square(comm, 10, 10, CellType.triangle)
-# -
+# Compute conductivities between facets and cells
+mesh.topology.create_connectivity(mesh.topology.dim - 1, mesh.topology.dim)
 
 
 # ### Visualizing mesh
 # We have provided a few convenience functions for plotting on jupyter notebooks.
 
-# +
 plot_mesh(mesh, filename="mesh.html")
 IPython.display.HTML(filename="mesh.html")
-# -
 
 # ### Handling time-dependent functions expressions
 #
 # First we define the constants we use in our program:
 
 # +
+a = fem.Constant(1.0)
+mu = fem.Constant(1.0)
 c0, c1, c2 = 1.0, 2.0, 0.5
 dt = fem.Constant(mesh, 0.1)
 # -
@@ -145,13 +151,12 @@ dt = fem.Constant(mesh, 0.1)
 # \end{align*}
 # $$
 
-# +
-f = c2 - 2*c0
+f = fem.Constant(mesh, c2 - 2*c0)
 print(type(f))
-# -
 
-# For $T$, $T_0$ and $T_D$ we first define an expression and then we interpolate
-# it into the corresponding function space.
+# We can now define an expression that be used to compute $u$, $u_0$ and $u_D$.
+# Once we have this expression we can compute the coefficients of a function $u \in V_h$
+# by interpolation.
 
 # +
 from functools import partial 
@@ -160,69 +165,64 @@ def expression(t, x):
     return c0*x[0]**2 + c1*x[0] + c2*t
 
 V = fem.FunctionSpace(mesh, ("Lagrange", 1))
-T0 = fem.Function(V)
-T0.interpolate(partial(expression, 0))
+u0 = fem.Function(V)
+u0.interpolate(partial(expression, 0))
 
-T0.name = "Temperature0"
+u0.name = "Temperature0"
 with io.XDMFFile(MPI.COMM_WORLD, "t0.xdmf", "w") as xdmf:
     xdmf.write_mesh(mesh)
-    xdmf.write_function(T0)
+    xdmf.write_function(u0)
 # -
 
 # ## Setting up a variational problem
 
-# +
 V = fem.FunctionSpace(mesh, ("Lagrange", 1))
-T = TrialFunction(V)
+u = TrialFunction(V)
 v = TestFunction(V)
-T0 = fem.Function(V)
-# -
 
 # The variational form can be written in UFL syntax:
 # $$
 # \begin{align*}
-#   a(T, v) = \int_{\Omega} T v \,dx + \alpha \Delta t \int_{\Omega}{\nabla T \cdot \nabla v}\,dx
+#   a(u, v) = \int_{\Omega} u v \,dx + \Delta t \int_{\Omega}{\nabla u \cdot \nabla v}\,dx
 # \end{align*}
 # $$
 
-# +
-a = inner(T, v) * dx + dt * inner(grad(T), grad(v)) * dx
+a = inner(u, v) * dx + dt * inner(grad(u), grad(v)) * dx
 a = fem.form(a)  # JIT compilation
-# -
 
 # $$
 # \begin{align*}
-#   L(v) = \Delta t \int_{\Omega} f \cdot v \, dx + \int_{\Omega} T_0 \cdot v \, dx
+#   L(v) = \Delta t \int_{\Omega} f \cdot v \, dx + \int_{\Omega} u_{n-1} \cdot v \, dx
 # \end{align*}
 # $$
 
-# +
-L = dt * inner(f, v) * dx + inner(T0, v) * dx
-# -
+L = dt * inner(f, v) * dx + inner(u0, v) * dx
+
+# Note that we are using `u` for the solution that we seek at time step `n``
+# and `u0`` for time step `n-1``.
 
 # To give the user freedom to set boundary conditions on single degrees of freedom,
-# the function `dolfinx.fem.dirichletbc` takes in the list of degrees of freedom(DOFs) as input.
+# the function `dolfinx.fem.dirichletbc` takes in the list of degrees of freedom(DOFs) as input.\
 # The DOFs on the boundary can be obtained in many ways: DOLFINx supplies a few convenience functions,
 # such as `dolfinx.fem.locate_dofs_topological` and `dolfinx.fem.locate_dofs_geometrical`.
 # DOLFINx also has convenience functions to obtain a list of all boundary facets.
 
 # +
 # Create Dirichlet function
-T_D = fem.Function(V)
-T_D.interpolate(partial(expression, 0))
+u_D = fem.Function(V)
+u_D.interpolate(partial(expression, 0))
 
 # Define Dirichlet bc
 
 # Get boundary facets
-tdim = mesh.topology.dim
-mesh.topology.create_connectivity(tdim - 1, tdim)
 bndry_facets = exterior_facet_indices(mesh.topology)
 
 # Locate degrees of freedom on those facets
+tdim = mesh.topology.dim
 bndry_dofs = fem.locate_dofs_topological(V, tdim - 1, bndry_facets)
 
 # Create list of Dirichlet BC
-bcs = [fem.dirichletbc(T_D, bndry_dofs)]
+bcs = [fem.dirichletbc(u_D, bndry_dofs)]
 # -
 
 # ### Setting up a time dependent solver
@@ -230,23 +230,18 @@ bcs = [fem.dirichletbc(T_D, bndry_dofs)]
 # As the left hand side of our problem(the matrix) is time independent, we would like avoid 
 # re-assembling it at every time step.We assemble the matrix once outside the temporal loop.
 
-# +
 A = fem.petsc.assemble_matrix(a, bcs=bcs)
 A.assemble()
-# -
 
 # Next, we can generate the integration kernel for the right hand side(RHS), 
 # and create the RHS vector `b` that we will assembled into at each time step.
 
-# +
 b = fem.Function(V)
 L = fem.form(L)  # JIT compilation
-# -
 
 # We next create the PETSc KSP(Krylov subspace method) solver, and set it to solve using an
 # [algebraic multigrid method](https: // hypre.readthedocs.io/en/latest/solvers-boomeramg.html).
 
-# +
 # Define Solver
 solver = PETSc.KSP().create(comm)
 solver.setOperators(A)
@@ -254,7 +249,6 @@ solver.setType(PETSc.KSP.Type.CG)
 pc = solver.getPC()
 pc.setType(PETSc.PC.Type.HYPRE)
 pc.setHYPREType("boomeramg")
-# -
 
 # ### Plotting a time dependent problem
 
@@ -262,25 +256,23 @@ pc.setHYPREType("boomeramg")
 # of the solution. The first step is to create an output file where we are going to save the 
 # solution at each time step:
 
-# +
-# Output file
+# Open file, keep it 
 file = io.XDMFFile(MPI.COMM_WORLD, "temperature.xdmf", "w")
 file.write_mesh(mesh)
-# -
 
 
 # ## Solving a time dependent problem
 #
 # We are now ready to solve the time dependent problem. At each time step, we need to:
 # 1. Update the time dependent boundary condition and source
-# 2. Reassemble the right hand side vector `b`
-# 3. Apply boundary conditions to `b`
-# 4. Solve linear problem `AT = b`
-# 5. Update current solution, `T0 = T`
+# 2. Reassemble the right hand side vector $b$ that depends on $u_{n-1}$
+# 3. Apply boundary conditions to $b$
+# 4. Solve linear problem $AU = b$
+# 5. Update current solution, $u_{n-1} = u_n$
 
 # +
-T = fem.Function(V)
-T.name = "temperature"
+u = fem.Function(V)
+u.name = "temperature"
 
 t = 0
 t_max = 100*dt.value
@@ -289,7 +281,7 @@ while t < t_max:
     print(f"t = {t:.2f} s")
 
     # Update boundary condition
-    T_D.interpolate(partial(expression, t))
+    u_D.interpolate(partial(expression, t))
 
     # Assemble RHS
     b.x.array[:] = 0
@@ -301,35 +293,44 @@ while t < t_max:
     fem.petsc.set_bc(b.vector, bcs)
 
     # Solve linear problem
-    T.x.array[:] = 0
-    solver.solve(b.vector, T.vector)
-    T.x.scatter_forward()
+    u.x.array[:] = 0
+    solver.solve(b.vector, u.vector)
+    u.x.scatter_forward()
 
     # Update un
-    T0.x.array[:] = T.x.array
+    u0.x.array[:] = u.x.array
 
     # Save solution at time step t
     file.write_function(T, t=t)
 
+# Now we can close the file
 file.close()
 # -
 
-# What's the temperature at an arbitrary point p?
+# ### What's the temperature at an arbitrary point $\boldsymbol{x}_p$?
+# Remember that 
+# $$
+# u_h(\boldsymbol{x}) = \sum_{i=1}^{dim{V_h}}{u_j \psi_j(\boldsymbol{x}})
+# $$
+# 
+# Once we find the values of of coefficients, its just a matter of evaluation the basis functions
+# at $\boldsymbol{x}_p$.
 
 # +
-# Given an arbitrary point "p"
-p = numpy.array([0.5, 0.5, 0.0], dtype=numpy.float64)
+# Given an arbitrary point "xp"
+xp = numpy.array([0.5, 0.5, 0.0], dtype=numpy.float64)
 
 # We first compute the cells that it belongs to
 bb_tree = geometry.BoundingBoxTree(mesh, mesh.topology.dim)
 cell_candidates = geometry.compute_collisions(bb_tree, p)
-cells = geometry.compute_colliding_cells(mesh, cell_candidates, p)
+cells = geometry.compute_colliding_cells(mesh, cell_candidates, xp)
 
 # Given a list of cells it's easy and "efficient" to compute T(p)
-values = T.eval(p, cells[0])
-print(f"Temperature at point {p} is {values[0]}")
+values = u.eval(xp, cells[0])
+print(f"Temperature at point {xp} is {values[0]}")
 # -
 
+# # Homework 2:
 # **TASK 1**: The above time-stepping loop does not include any 
 # comparison of numerical and exact solutions, which is required 
 # to validate the implementation. In the previous section we've 
@@ -342,7 +343,7 @@ print(f"Temperature at point {p} is {values[0]}")
 # Solution goes here:
 # -
 
-# # Homework 1
+
 # In this homework we are going to tackle a more physically realistic problem.
 # Given the temperature outside a room, we shall compute the temperature inside
 # the room, and find the appropriate insulation material. 
@@ -366,7 +367,7 @@ print(f"Temperature at point {p} is {values[0]}")
 # \alpha = \frac{k}{\rho C_p}
 # \end{align*}
 # $$
-# 
+#
 # Examples of thermal diffusivity for four different materials:
 # $$\alpha_{air} = 19 \cdot 10^{-6} \, m^2/s$$
 # $$\alpha_{glass} = 0.34	 \cdot 10^{-6} \, m^2/s$$
@@ -432,7 +433,6 @@ plt.xlabel('Time (hour)', fontsize=20)
 plt.ylabel('Temperature ($^oC$)', fontsize=20)
 plt.savefig("temperature.png")
 
-# -
 
 # +
 # Reference solution
@@ -456,14 +456,14 @@ import matplotlib.pyplot as plt
 plt.plot(time, temp)
 plt.xlabel('Time (hour)', fontsize=20)
 plt.ylabel('Temperature ($^oC$)', fontsize=20)
-# -
 
+
+# -
 
 # **Task 3**: Modify the following thermal solver so that it returns 
 # the temperature inside the room at each time step.
 # Save the solution at each time-step and visualize with paraview.
 
-# +
 def thermal_solver(alpha, intial_temp=15, time_step=900.0):
     mesh = alpha.function_space.mesh
 
@@ -562,13 +562,10 @@ def thermal_solver(alpha, intial_temp=15, time_step=900.0):
         T0.x.array[:] = T.x.array
     
     return temperature, time
-# -
 
 # **Task 4**: Which material should we use for insulation?
 # Modify the alpha value on the wall and plot temperature
 # vs time inside the room.
 
-# +
 temperature, time = thermal_solver(alpha)
 assert len(temperature) == len(time)
-# -
