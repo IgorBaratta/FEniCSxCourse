@@ -4,11 +4,11 @@ import dolfinx
 from dolfinx.fem.petsc import LinearProblem
 import ufl
 import numpy
+import argparse
 
 
 def create_mesh(comm, target_dofs, strong_scaling):
-    # Create a mesh such that the target number of dofs
-
+    # Create a mesh such that the target number of dofs is achieved
     # Get number of processes
     num_processes = comm.size
 
@@ -26,9 +26,9 @@ def create_mesh(comm, target_dofs, strong_scaling):
     return dolfinx.mesh.create_unit_cube(comm, Nc[0], Nc[1], Nc[2])
 
 
-def poisson_solver(ndofs: int, petsc_options: dict):
+def poisson_solver(ndofs: int, petsc_options: dict, strong_scaling: bool = False):
     comm = MPI.COMM_WORLD
-    mesh = create_mesh(comm, ndofs, False)
+    mesh = create_mesh(comm, ndofs, strong_scaling)
     tdim = mesh.topology.dim
     mesh.topology.create_connectivity(tdim - 1, tdim)
 
@@ -57,7 +57,11 @@ def poisson_solver(ndofs: int, petsc_options: dict):
     if comm.rank == 0:
         print(f"Number of degrees of freedom: {num_dofs}", flush=True)
         print(f"Solver time: {t.elapsed()[0]}", flush=True)
-        print(f"Number of iterations {problem.solver.its}", flush=True)
+        print(f"Number of iterations: {problem.solver.its}", flush=True)
+        print(f"Number of MPI processes: {comm.size}", flush=True)
+        print(f"Solver: {petsc_options}", flush=True)
+
+
 
     return num_dofs, t.elapsed()[0], problem.solver.its
 
@@ -69,7 +73,17 @@ multigrid = {"ksp_type": "cg", "pc_type": "hypre",
              "pc_hypre_type": "boomeramg",
              "ksp_rtol": "1e-7"}
 
+solvers = {"lu": lu_solver, "cg": cg_nopre, "mg": multigrid}
+scaling = {"strong": True, "weak": False}
 
 if __name__ == "__main__":
-    dofs = 200000
-    poisson_solver(dofs, cg_nopre)
+    parser = argparse.ArgumentParser(description='Code to test the parallel performance of DOLFINx and the underlying linear solvers.')
+    parser.add_argument('--num_dofs',  type=int, help='Number of degrees-of-freedom: total (in case of strong scaling) or per process (for weak scaling).')
+    parser.add_argument('--solver', type=str, default="cg", help='Solver to use', choices=['lu', 'cg', 'mg'])
+    parser.add_argument('--scaling_type', type=str, default="strong", help='Scaling type: strong (fixed problem size) or weak (fixed problem size per process)', choices=['strong', 'weak'])
+
+    args = parser.parse_args()
+    num_dofs = args.num_dofs
+    solver = solvers[args.solver]
+    strong_scaling = scaling[args.scaling_type]
+    poisson_solver(num_dofs, solver, strong_scaling)
