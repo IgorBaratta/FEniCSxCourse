@@ -18,8 +18,8 @@ cd FEniCSxCourse/
 - [ ] Lecture 1: Introduction
 	* [Poisson's problem](Problem1_Poisson/README.md) 
 - [ ] Lecture 2: Classical 2nd order problems
-	* [Transient heat conduction](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line)
-	* [Elasticity](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line)
+	* [Transient heat conduction](Problem2_Transient/README.md)
+	* [Elasticity](Problem3_Elasticity/README.md)
 - [ ] Lecture 3: 
 	* [Mixed problems](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file)
 - [ ] Lecture 4: Advanced topics
