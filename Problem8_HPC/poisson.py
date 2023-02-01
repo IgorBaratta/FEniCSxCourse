@@ -67,11 +67,20 @@ def poisson_solver(ndofs: int, petsc_options: dict, strong_scaling: bool = False
 
 
 # Solver configuration
-lu_solver = {"ksp_type": "preonly", "pc_type": "lu"}
-cg_nopre = {"ksp_type": "cg", "pc_type": "none"}
-multigrid = {"ksp_type": "cg", "pc_type": "hypre",
+lu_solver = {"ksp_type": "preonly", 
+             "pc_type": "lu"}
+
+cg_nopre = {"ksp_type": "cg", 
+            "pc_type": "none",
+            "ksp_rtol": 1e-7}
+
+multigrid = {"ksp_type": "cg", 
+             "pc_type": "hypre",
              "pc_hypre_type": "boomeramg",
-             "ksp_rtol": "1e-7"}
+             "pc_hypre_boomeramg_strong_threshold": 0.7,
+             "pc_hypre_boomeramg_agg_nl": 4,
+             "pc_hypre_boomeramg_agg_num_paths": 2,
+             "ksp_rtol": 1e-7}
 
 solvers = {"lu": lu_solver, "cg": cg_nopre, "mg": multigrid}
 scaling = {"strong": True, "weak": False}
