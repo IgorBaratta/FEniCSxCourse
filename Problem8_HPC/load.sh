@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # make module visible to user
+module use --append /home/ibaratta/spack/share/spack/modules/linux-centos7-ivybridge/
+
 # pkgconf@1.8.0%gcc@12.2.0 build_system=autotools arch=linux-centos7-ivybridge
 module load pkgconf-1.8.0-gcc-12.2.0-r6oblgz
 # ncurses@6.3%gcc@12.2.0~symlinks+termlib abi=none build_system=autotools arch=linux-centos7-ivybridge
