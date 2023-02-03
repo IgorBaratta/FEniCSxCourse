@@ -81,15 +81,18 @@ def poisson_solver(ndofs: int, petsc_options: dict, strong_scaling: bool = False
     u = ufl.TrialFunction(V)
     v = ufl.TestFunction(V)
 
+    # Retrieves the indices of the exterior facets (boundary faces)
     bndry_facets = dolfinx.mesh.exterior_facet_indices(mesh.topology)
+    # Computes the degrees of freedom (DOFs) corresponding to the exterior facets (boundary faces) of the mesh
     bndry_dofs = dolfinx.fem.locate_dofs_topological(V, tdim - 1, bndry_facets)
     zero = dolfinx.fem.Constant(mesh, 0.0)
+    # creates the boundary condition (BC) object
     bcs = [dolfinx.fem.dirichletbc(zero, bndry_dofs, V)]
+
+    a = ufl.inner(ufl.grad(u), ufl.grad(v))*ufl.dx
 
     x = ufl.SpatialCoordinate(mesh)
     f = 1 - x[0]**2
-
-    a = ufl.inner(ufl.grad(u), ufl.grad(v))*ufl.dx
     L = f*v*ufl.dx
 
     uh = dolfinx.fem.Function(V)
