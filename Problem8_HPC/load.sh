@@ -1,11 +1,5 @@
 #!/bin/bash
 
-target_dir="~/FEniCSxCourse/Problem8_HPC/"
-if [ ! -d "$target_dir" ]; then
-  echo "Error: Directory does not exist." >&2
-  exit 1
-fi
-
 # make module visible to user
 module use --append /home/ibaratta/spack/share/spack/modules/linux-centos7-ivybridge/
 
