@@ -28,6 +28,7 @@ def create_mesh(comm, target_dofs, strong_scaling):
         in each direction and the communication object.
 
     """
+
     # Get number of processes
     num_processes = comm.size
 
@@ -50,6 +51,7 @@ def create_mesh(comm, target_dofs, strong_scaling):
 
 
 def poisson_solver(ndofs: int, petsc_options: dict, strong_scaling: bool = False):
+
     """
     Solves the Poisson equation using a finite element method.
 
@@ -72,6 +74,7 @@ def poisson_solver(ndofs: int, petsc_options: dict, strong_scaling: bool = False
         The number of iterations taken by the solver.
 
     """
+    
     comm = MPI.COMM_WORLD
     mesh = create_mesh(comm, ndofs, strong_scaling)
     tdim = mesh.topology.dim
@@ -121,6 +124,7 @@ cg_nopre = {"ksp_type": "cg",
             "ksp_rtol": 1e-7}
 
 multigrid = {"ksp_type": "cg",
+
              "pc_type": "hypre",
              "pc_hypre_type": "boomeramg",
              "pc_hypre_boomeramg_strong_threshold": 0.7,
@@ -140,6 +144,7 @@ if __name__ == "__main__":
                         help='Solver to use', choices=['lu', 'cg', 'mg'])
     parser.add_argument('--scaling_type', type=str, default="strong",
                         help='Scaling type: strong (fixed problem size) or weak (fixed problem size per process)', choices=['strong', 'weak'])
+
 
     args = parser.parse_args()
     num_dofs = args.num_dofs

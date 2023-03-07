@@ -10,3 +10,4 @@
 WORK_DIR=~/FEniCSxCourse/Problem8_HPC
 source $WORK_DIR/load.sh
 mpirun -np 40 --hostfile $PBS_NODEFILE  python3 $WORK_DIR/poisson.py --num_dofs 10000
+
