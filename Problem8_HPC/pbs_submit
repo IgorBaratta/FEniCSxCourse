@@ -1,10 +1,13 @@
+# This is a script for submitting a job to a PBS (Portable Batch System) queue on a cluster. 
+# The script requests 2 nodes with 40 CPUs each and specifies the walltime limit of 1 hour for the job. 
+
 #PBS -N JobPar
 #PBS -l select=2:ncpus=40:nodetype=n40
-
 #PBS -l walltime=1:00:00
 #PBS -m ae
 #PBS -M igorbaratta@gmail.com
 
-source load.sh
+WORK_DIR=~/FEniCSxCourse/Problem8_HPC
+source $WORK_DIR/load.sh
+mpirun -np 40 --hostfile $PBS_NODEFILE  python3 $WORK_DIR/poisson.py --num_dofs 10000
 
-mpirun -np 80 --hostfile $PBS_NODEFILE  python3 ~/FEniCSxCourse/Problem8_HPC/poisson.py --num_dofs 10000
